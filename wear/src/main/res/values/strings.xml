@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Akış</string>
+    <string name="tile_label">Akış</string>
+
+    <!-- Şimdi Çalıyor: erişilebilirlik etiketleri (BRIEF Bölüm 11) -->
+    <string name="cd_play">Oynat</string>
+    <string name="cd_pause">Duraklat</string>
+    <string name="cd_next">Sonraki parça</string>
+    <string name="cd_previous">Önceki parça</string>
+    <string name="cd_seek_back">15 saniye geri</string>
+    <string name="cd_seek_forward">30 saniye ileri</string>
+    <string name="cd_volume">Ses: %1$d / %2$d</string>
+    <string name="cd_volume_locked">Ses bu uygulamada değiştirilemiyor</string>
+    <string name="cd_more">Daha fazla</string>
+    <string name="cd_buffering">Yükleniyor</string>
+
+    <string name="live">CANLI</string>
+    <string name="volume_value">%1$d/%2$d</string>
+
+    <!-- Geri bildirim -->
+    <string name="toast_unsupported">Bu uygulama desteklemiyor</string>
+    <string name="toast_unreachable">Telefona ulaşılamıyor</string>
+    <string name="toast_more_coming">Bu menü sonraki sürümde geliyor</string>
+
+    <!-- Boş ve hata durumları -->
+    <string name="empty_title">Telefonda şu an bir şey çalmıyor</string>
+    <string name="empty_resume">Son çalanı sürdür</string>
+    <string name="disconnected_title">Telefona ulaşılamıyor</string>
+    <string name="disconnected_retry">Tekrar dene</string>
+
+    <!-- Kaynaklar paneli (BRIEF Bölüm 7.2) -->
+    <string name="sources_active">Şu an aktif</string>
+    <string name="sources_active_none">Aktif oturum yok</string>
+    <string name="sources_recent">Son kullanılanlar</string>
+    <string name="sources_output">Çıkış</string>
+    <string name="sources_output_unknown">Bilinmiyor</string>
+    <string name="sources_settings">Ayarlar</string>
+    <string name="state_playing">Çalıyor</string>
+    <string name="state_paused">Duraklatıldı</string>
+
+    <!-- Onboarding (BRIEF Bölüm 7.7) -->
+    <string name="onboarding_welcome_title">Telefonundaki müziği bilekten yönet</string>
+    <string name="onboarding_welcome_body">Müzik, video, podcast, tarayıcı… Telefonda ne çalıyorsa.</string>
+    <string name="onboarding_welcome_next">Başla</string>
+    <string name="onboarding_install_title">Telefonda Akış Köprü\'yü kur</string>
+    <string name="onboarding_install_body">Saat, telefondaki medyaya bu küçük uygulama üzerinden ulaşır.</string>
+    <string name="onboarding_install_button">Telefonda aç</string>
+    <string name="onboarding_permission_title">Bildirim erişimine izin ver</string>
+    <string name="onboarding_permission_body">Sadece medya oturumlarını okumak için; bildirim içeriklerin okunmaz ve saklanmaz.</string>
+    <string name="onboarding_permission_button">Telefonda aç</string>
+    <string name="onboarding_opened_on_phone">Telefonuna bak</string>
+    <string name="onboarding_open_failed">Telefonda açılamadı</string>
+
+    <!-- Ayarlar (PLAN K5: Faz 1'de minimal) -->
+    <string name="settings_title">Ayarlar</string>
+    <string name="settings_bridge">Telefon köprüsü</string>
+    <string name="settings_bridge_connected">Bağlı · %1$s</string>
+    <string name="settings_bridge_unreachable">Telefona ulaşılamıyor</string>
+    <string name="settings_bridge_missing">Kurulu değil</string>
+    <string name="settings_bridge_checking">Kontrol ediliyor…</string>
+    <string name="settings_permission">Bildirim erişimi</string>
+    <string name="settings_permission_ok">Verildi</string>
+    <string name="settings_permission_missing">Verilmedi</string>
+    <string name="settings_permission_unknown">Bilinmiyor</string>
+    <string name="settings_version">Sürüm</string>
+    <string name="settings_licenses">Lisanslar</string>
+    <string name="settings_licenses_body">Manrope yazı tipi: SIL Open Font License 1.1. Material Symbols ikonları: Apache License 2.0.</string>
+
+    <!-- Tile (BRIEF Bölüm 9.1) -->
+    <string name="tile_open">Aç</string>
+    <string name="tile_empty">Bir şey çalmıyor</string>
+</resources>

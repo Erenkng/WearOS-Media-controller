@@ -25,9 +25,8 @@ Müzik ve video uygulamaları, podcast uygulamaları ve tarayıcı — `MediaSes
 **Faz 1 (MVP)** kodu tamam. Her push'ta GitHub Actions birim testlerini çalıştırıyor, iki debug APK'yı
 derliyor, imzaları ve izinleri kontrol ediyor. Gerçek cihaz testleri `docs/TESTING.md`'de.
 
-**Kurulum (bilgisayarsız):** Actions → son "Build" → Artifacts → `akis-debug-apks` → telefona
-`mobile-debug.apk`'yı kur → Akış Köprü → **Saate yükle**. Saat uygulaması telefon APK'sının içinde gelir
-ve saate kablosuz kurulur (yalnızca debug sürümü).
+**Kurulum (bilgisayarsız):** Telefonda [son debug APK'sını indir](https://github.com/Erenkng/WearOS-Media-controller/releases/download/akis-debug-latest/akis-kopru-debug.apk) ve kur → Akış Köprü →
+**Saate yükle**. Saat uygulaması telefon APK'sının içinde gelir ve saate kablosuz kurulur (yalnızca debug sürümü).
 
 ```bash
 ./gradlew test assembleDebug

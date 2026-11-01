@@ -5,10 +5,17 @@ on:
   pull_request:
   workflow_dispatch:
 
+# Aynı dala art arda push gelirse eski çalıştırma iptal edilir (sürüm yayını yarışmasın).
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build:
     runs-on: ubuntu-latest
     timeout-minutes: 40
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v4
 
@@ -59,6 +66,34 @@ jobs:
             echo "HATA: saat uygulamasında INTERNET izni olmamalı"; exit 1
           fi
           echo "OK: saat uygulaması çevrimdışı"
+
+      # Telefondan tek dokunuşla indirmek için sabit bağlantılı "son debug derlemesi" sürümü:
+      # https://github.com/<repo>/releases/download/akis-debug-latest/akis-kopru-debug.apk
+      # PR çalıştırmalarında yayınlanmaz; yalnızca push ve elle tetiklemede.
+      - name: Son debug APK'larını sürüm olarak yayınla
+        if: github.event_name != 'pull_request'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          mkdir -p dist
+          cp mobile/build/outputs/apk/debug/mobile-debug.apk dist/akis-kopru-debug.apk
+          cp wear/build/outputs/apk/debug/wear-debug.apk dist/akis-saat-debug.apk
+          cat > dist/notes.md <<NOTES
+          Son debug derlemesi: \`${GITHUB_SHA::7}\` (\`${GITHUB_REF_NAME}\` dalı).
+
+          - **akis-kopru-debug.apk**: telefona bunu kur. Saat uygulaması içinde gelir; Akış Köprü → **Saate yükle** ile saate kurulur.
+          - **akis-saat-debug.apk**: saat uygulaması, bilgisayardan ADB ile kurmak istersen.
+
+          Debug derlemesidir ve repodaki paylaşılan debug anahtarıyla imzalıdır (signing/README.md). Play Store sürümü değildir.
+          NOTES
+          TAG=akis-debug-latest
+          gh release delete "$TAG" --yes --cleanup-tag || true
+          gh release create "$TAG" dist/akis-kopru-debug.apk dist/akis-saat-debug.apk \
+            --prerelease \
+            --target "$GITHUB_SHA" \
+            --title "Akış debug: son derleme" \
+            --notes-file dist/notes.md
 
       - uses: actions/upload-artifact@v4
         if: success()

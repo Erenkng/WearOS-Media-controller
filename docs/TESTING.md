@@ -30,14 +30,15 @@ Faz 1 (MVP) için kurulum adımları ve kabul kriterlerinin (BRIEF Bölüm 12) t
 `signing/debug.keystore` ile imzalanır (bkz. `signing/README.md`). Hangi bilgisayarda ya da CI'da
 derlenirse derlensin iki APK aynı imzayı taşır ve yeni sürüm eskisinin üstüne kurulur.
 
-**Derlemeden indirme:** Her push'ta GitHub Actions iki APK'yı derler. Repo → **Actions** → son
-"Build" çalıştırması → **Artifacts** → `akis-debug-apks` zip'ini indir.
+**Derlemeden indirme:** Her push'ta GitHub Actions iki APK'yı derler ve "Akış debug: son derleme" sürümüne
+koyar: <https://github.com/Erenkng/WearOS-Media-controller/releases/download/akis-debug-latest/akis-kopru-debug.apk> (telefon uygulaması). Ayrıca her çalıştırmanın **Artifacts** bölümünde `akis-debug-apks` zip'i bulunur.
 
 ## 3. Telefona kurulum (Akış Köprü)
 
-**Bilgisayarsız:** GitHub'da repo → **Actions** → son başarılı "Build" → **Artifacts** →
-`akis-debug-apks` zip'ini telefona indir, içindeki `mobile-debug.apk`'yı aç ve kur ("Bilinmeyen
-uygulamalar" iznini isterse ver). Saat uygulaması bu APK'nın içinde geliyor (bkz. 4. bölüm).
+**Bilgisayarsız:** Telefonda şu bağlantıyı aç; her zaman son debug derlemesini indirir:
+<https://github.com/Erenkng/WearOS-Media-controller/releases/download/akis-debug-latest/akis-kopru-debug.apk>
+İnen `akis-kopru-debug.apk`'yı aç ve kur ("Bilinmeyen uygulamalar" iznini isterse ver). Saat uygulaması
+bu APK'nın içinde geliyor (bkz. 4. bölüm). Tüm dosyalar: repo → **Releases** → "Akış debug: son derleme".
 
 **Bilgisayarla:**
 

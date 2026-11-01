@@ -27,10 +27,13 @@ Faz 1 (MVP) için kurulum adımları ve kabul kriterlerinin (BRIEF Bölüm 12) t
 - `mobile/build/outputs/apk/debug/mobile-debug.apk`: telefon, **Akış Köprü**
 - `wear/build/outputs/apk/debug/wear-debug.apk`: saat, **Akış**
 
-**İki APK'yı aynı bilgisayarda derleyin.** Data Layer, saat ve telefon uygulamalarının aynı
-`applicationId` (`com.erenkng.akis`) ve **aynı imza anahtarına** sahip olmasını şart koşar. Debug
-anahtarı bilgisayara özeldir (`~/.android/debug.keystore`). Farklı bilgisayarda derlenen iki APK
-birbirini görmez.
+**İmza:** Data Layer, saat ve telefon uygulamalarının aynı `applicationId` (`com.erenkng.akis`) ve
+**aynı imza anahtarına** sahip olmasını şart koşar. Bu yüzden debug derlemeleri repodaki paylaşılan
+`signing/debug.keystore` ile imzalanır (bkz. `signing/README.md`). Hangi bilgisayarda ya da CI'da
+derlenirse derlensin iki APK aynı imzayı taşır ve yeni sürüm eskisinin üstüne kurulur.
+
+**Derlemeden indirme:** Her push'ta GitHub Actions iki APK'yı derler. Repo → **Actions** → son
+"Build" çalıştırması → **Artifacts** → `akis-debug-apks` zip'ini indir.
 
 ## 3. Telefona kurulum (Akış Köprü)
 

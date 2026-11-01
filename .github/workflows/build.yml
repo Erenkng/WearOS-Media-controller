@@ -20,12 +20,23 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
 
       - name: Birim testleri
-        run: ./gradlew test --continue --stacktrace
+        run: ./gradlew test --continue
 
       - name: Debug APK'ları derle
-        run: ./gradlew assembleDebug --continue --stacktrace
+        run: ./gradlew assembleDebug --continue
 
-      # İki APK aynı çalıştırmada derlendiği için aynı debug anahtarıyla imzalanır (Data Layer şartı).
+      # İki APK da repodaki paylaşılan debug anahtarıyla imzalanmış olmalı (signing/README.md).
+      # Data Layer, saat ve telefon uygulamasının aynı imzayı taşımasını şart koşar.
+      - name: İmzaları doğrula
+        run: |
+          APKSIGNER="$(ls -d "$ANDROID_HOME"/build-tools/*/ | sort -V | tail -1)apksigner"
+          EXPECTED="25936c296b138513396cb6ac5e21bd7af0fb98e7819c7a65097557e41103f092"
+          for apk in mobile/build/outputs/apk/debug/mobile-debug.apk wear/build/outputs/apk/debug/wear-debug.apk; do
+            digest="$("$APKSIGNER" verify --print-certs "$apk" | grep -m1 'SHA-256 digest' | awk '{print $NF}')"
+            echo "$apk -> $digest"
+            test "$digest" = "$EXPECTED"
+          done
+
       - uses: actions/upload-artifact@v4
         if: success()
         with:

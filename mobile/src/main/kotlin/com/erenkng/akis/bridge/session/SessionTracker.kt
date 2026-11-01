@@ -177,7 +177,7 @@ class SessionTracker(
 
         override fun onQueueChanged(queue: MutableList<MediaSession.QueueItem>?) = recompute()
 
-        override fun onAudioInfoChanged(info: MediaController.PlaybackInfo?) = recompute()
+        override fun onAudioInfoChanged(info: MediaController.PlaybackInfo) = recompute()
 
         override fun onSessionDestroyed() {
             // Liste değişikliği de gelecektir; yine de hemen düşür ki saat beklemesin.

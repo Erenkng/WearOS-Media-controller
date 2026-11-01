@@ -2,8 +2,6 @@ package com.erenkng.akis.wear.ui.main
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.pager.VerticalPager
-import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -11,6 +9,8 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.wear.compose.foundation.pager.VerticalPager
+import androidx.wear.compose.foundation.pager.rememberPagerState
 import androidx.wear.compose.material3.VerticalPageIndicator
 import com.erenkng.akis.wear.R
 import com.erenkng.akis.wear.player.PlayerViewModel
@@ -30,8 +30,9 @@ enum class MainPage {
 private val Pages = MainPage.entries
 
 /**
- * Not: Compose foundation'ın `VerticalPager`'ı kullanılır; döner girdiyi kendisi tüketmez.
- * Böylece Şimdi Çalıyor'da çerçeve sese, Kaynaklar'da listeye gider (PLAN 4.4).
+ * Wear `VerticalPager`, `rotaryScrollableBehavior = null` ile: döner çerçeve sayfa değiştirmez.
+ * Pager her sayfayı `hierarchicalFocusGroup(aktif sayfa)` ile sarar; böylece çerçeve Şimdi Çalıyor'da
+ * sese, Kaynaklar'da listeye gider (PLAN 4.4).
  *
  * @param showNowPlayingSignal her değiştiğinde (tile/komplikasyon deep link'i) Şimdi Çalıyor'a döner.
  */
@@ -60,7 +61,11 @@ fun MainPager(viewModel: PlayerViewModel, showNowPlayingSignal: Int, onOpenSetti
     )
 
     Box(Modifier.fillMaxSize()) {
-        VerticalPager(state = pagerState, modifier = Modifier.fillMaxSize()) { index ->
+        VerticalPager(
+            state = pagerState,
+            modifier = Modifier.fillMaxSize(),
+            rotaryScrollableBehavior = null,
+        ) { index ->
             when (Pages[index]) {
                 MainPage.NOW_PLAYING -> NowPlayingScreen(
                     state = state,

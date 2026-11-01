@@ -13,7 +13,7 @@ import androidx.compose.ui.unit.dp
 import androidx.wear.compose.foundation.CurvedDirection
 import androidx.wear.compose.foundation.CurvedLayout
 import androidx.wear.compose.foundation.CurvedTextStyle
-import androidx.wear.compose.foundation.curvedText
+import androidx.wear.compose.foundation.basicCurvedText
 import com.erenkng.akis.shared.format.DurationFormat
 import com.erenkng.akis.wear.ui.theme.AkisType
 
@@ -36,6 +36,6 @@ fun CurvedBottomText(text: String, style: TextStyle, modifier: Modifier = Modifi
         anchor = 90f,
         angularDirection = CurvedDirection.Angular.CounterClockwise,
     ) {
-        curvedText(text = text, style = CurvedTextStyle(style))
+        basicCurvedText(text = text, style = CurvedTextStyle(style))
     }
 }

@@ -20,6 +20,18 @@ android {
         versionName = "0.1.0"
     }
 
+    signingConfigs {
+        // Paylaşılan DEBUG anahtarı (signing/README.md): CI'da ve her bilgisayarda aynı imza.
+        // Data Layer, saat ve telefon uygulamasının aynı anahtarla imzalanmasını şart koşar;
+        // yeni sürüm de eskisinin üstüne kaldırmadan kurulabilir. Play Store için KULLANILMAZ.
+        getByName("debug") {
+            storeFile = rootProject.file("signing/debug.keystore")
+            storePassword = "android"
+            keyAlias = "androiddebugkey"
+            keyPassword = "android"
+        }
+    }
+
     buildTypes {
         release {
             isMinifyEnabled = false

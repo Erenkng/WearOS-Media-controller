@@ -10,8 +10,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.pager.VerticalPager
-import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -22,6 +20,8 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.wear.compose.foundation.pager.VerticalPager
+import androidx.wear.compose.foundation.pager.rememberPagerState
 import androidx.wear.compose.material3.Button
 import androidx.wear.compose.material3.ButtonDefaults
 import androidx.wear.compose.material3.Icon
@@ -40,6 +40,7 @@ import java.util.concurrent.Executors
 
 /**
  * İlk kurulum, 3 ekran, dikey kaydırmalı (BRIEF Bölüm 7.7). Yatay kaydırma sistemin geri jestidir.
+ * Wear `VerticalPager`'ın varsayılan döner davranışı korunur: çerçeve burada sayfa çevirir.
  *
  * Saat, eksik adımdan başlar. İzin telefonda verilince köprü `/akis/bridge` ile bildirir ve
  * saat bu ekrandan kendiliğinden ana ekrana geçer (bu ekranı gösteren durum ortadan kalkar).

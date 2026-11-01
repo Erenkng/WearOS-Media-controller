@@ -22,8 +22,12 @@ Müzik ve video uygulamaları, podcast uygulamaları ve tarayıcı — `MediaSes
 
 ## Durum
 
-**Faz 1 (MVP)** kodu yazıldı. Android modülleri henüz derlenmedi (bkz. `docs/OPEN_QUESTIONS.md`, S1).
-Saf Kotlin mantığı birim testlerle doğrulandı.
+**Faz 1 (MVP)** kodu tamam. Her push'ta GitHub Actions birim testlerini çalıştırıyor, iki debug APK'yı
+derliyor, imzaları ve izinleri kontrol ediyor. Gerçek cihaz testleri `docs/TESTING.md`'de.
+
+**Kurulum (bilgisayarsız):** Actions → son "Build" → Artifacts → `akis-debug-apks` → telefona
+`mobile-debug.apk`'yı kur → Akış Köprü → **Saate yükle**. Saat uygulaması telefon APK'sının içinde gelir
+ve saate kablosuz kurulur (yalnızca debug sürümü).
 
 ```bash
 ./gradlew test assembleDebug
@@ -33,3 +37,4 @@ Saf Kotlin mantığı birim testlerle doğrulandı.
 
 - Manrope yazı tipi: SIL Open Font License 1.1 (`wear/src/main/assets/licenses/Manrope-OFL.txt`)
 - Material Symbols ikonları: Apache License 2.0
+- libadb-android (yalnızca debug, saate kurulum): Apache License 2.0 (çift lisanslı, Apache seçildi)

@@ -17,6 +17,10 @@ dependencyResolutionManagement {
     repositories {
         google()
         mavenCentral()
+        // Yalnızca libadb-android (saate kablosuz kurulum, debug) ve bağımlılığı spake2 için.
+        maven("https://jitpack.io") {
+            content { includeGroupByRegex("com\\.github\\.MuntashirAkon.*") }
+        }
     }
 }
 

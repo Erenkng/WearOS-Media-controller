@@ -48,11 +48,48 @@ android {
         compose = true
         buildConfig = true
     }
+
+    packaging {
+        resources {
+            // BouncyCastle jar'larının çakışan meta dosyaları (saate kurulum, debug).
+            excludes += setOf("META-INF/versions/9/OSGI-INF/MANIFEST.MF", "META-INF/BCKEY.DSA", "META-INF/BCKEY.SF")
+        }
+    }
 }
 
 kotlin {
     compilerOptions {
         jvmTarget.set(JvmTarget.JVM_17)
+    }
+}
+
+/**
+ * Saat APK'sını telefon APK'sının içine gömer: `assets/wear/akis-wear.apk`.
+ * Akış Köprü'deki "Saate yükle" ekranı bunu kablosuz ADB ile saate kurar (yalnızca debug).
+ */
+abstract class EmbedWearApkTask : DefaultTask() {
+    @get:InputFile
+    @get:PathSensitive(PathSensitivity.NONE)
+    abstract val wearApk: RegularFileProperty
+
+    @get:OutputDirectory
+    abstract val outputDir: DirectoryProperty
+
+    @TaskAction
+    fun embed() {
+        val target = outputDir.get().file("wear/akis-wear.apk").asFile
+        target.parentFile.mkdirs()
+        wearApk.get().asFile.copyTo(target, overwrite = true)
+    }
+}
+
+androidComponents {
+    onVariants(selector().withBuildType("debug")) { variant ->
+        val embed = tasks.register<EmbedWearApkTask>("embed${variant.name.replaceFirstChar { it.uppercase() }}WearApk") {
+            dependsOn(":wear:assembleDebug")
+            wearApk.set(rootProject.layout.projectDirectory.file("wear/build/outputs/apk/debug/wear-debug.apk"))
+        }
+        variant.sources.assets?.addGeneratedSourceDirectory(embed, EmbedWearApkTask::outputDir)
     }
 }
 
@@ -71,6 +108,12 @@ dependencies {
     implementation(libs.play.services.wearable)
     implementation(libs.kotlinx.coroutines.android)
     implementation(libs.kotlinx.coroutines.play.services)
+
+    // Saate kablosuz kurulum: yalnızca debug sürümünde (release çevrimdışı kalır, BRIEF Bölüm 11).
+    debugImplementation(libs.libadb.android)
+    debugImplementation(libs.conscrypt.android)
+    debugImplementation(libs.bouncycastle.bcpkix)
+    debugImplementation(libs.androidx.lifecycle.viewmodel.compose)
 
     testImplementation(libs.junit)
     testImplementation(kotlin("test-junit"))

@@ -2,10 +2,8 @@
 
 Faz 1 (MVP) için kurulum adımları ve kabul kriterlerinin (BRIEF Bölüm 12) tek tek nasıl test edileceği.
 
-> **Önemli:** Bu kod Google Maven'a erişimi olmayan bir ortamda yazıldı. `./gradlew assembleDebug` henüz
-> hiç çalıştırılmadı. Saf Kotlin mantığı (protokol, odak seçimi, gönderim politikası, ses birleştirme,
-> döner çerçeve adımları) 44 birim testle doğrulandı. Android katmanı derlenmedi. İlk derlemede
-> çıkabilecek sorunlar için `docs/OPEN_QUESTIONS.md` içindeki S1'e bakın.
+> **Durum:** Proje GitHub Actions'ta derleniyor: birim testleri, iki debug APK, imza ve izin kontrolleri
+> her push'ta çalışıyor. Uygulama henüz gerçek saat ve telefonda denenmedi; aşağıdaki testler bunun için.
 
 ## 1. Gereksinimler
 
@@ -37,6 +35,12 @@ derlenirse derlensin iki APK aynı imzayı taşır ve yeni sürüm eskisinin üs
 
 ## 3. Telefona kurulum (Akış Köprü)
 
+**Bilgisayarsız:** GitHub'da repo → **Actions** → son başarılı "Build" → **Artifacts** →
+`akis-debug-apks` zip'ini telefona indir, içindeki `mobile-debug.apk`'yı aç ve kur ("Bilinmeyen
+uygulamalar" iznini isterse ver). Saat uygulaması bu APK'nın içinde geliyor (bkz. 4. bölüm).
+
+**Bilgisayarla:**
+
 ```bash
 adb devices                                     # telefon listede olmalı
 adb install -r mobile/build/outputs/apk/debug/mobile-debug.apk
@@ -58,7 +62,28 @@ adb shell cmd notification allow_listener com.erenkng.akis/com.erenkng.akis.brid
 adb shell cmd notification disallow_listener com.erenkng.akis/com.erenkng.akis.bridge.listener.AkisNotificationListener
 ```
 
-## 4. Saate kurulum (Wi-Fi üzerinden ADB)
+## 4. Saate kurulum
+
+### 4A. Telefondan, bilgisayarsız (önerilen)
+
+Debug sürümündeki Akış Köprü, saat uygulamasını içinde taşır ve saate kablosuz ADB ile kendisi kurar.
+
+1. Saati telefonla **aynı Wi-Fi ağına** bağla (Ayarlar → Bağlantılar → Wi-Fi). Bluetooth bağlıyken
+   saat Wi-Fi'yi kendiliğinden kapatabilir; kurulum bitene kadar açık kalmalı.
+2. Saatte geliştirici modunu aç: **Ayarlar → Saat hakkında → Yazılım bilgisi → Yazılım sürümü** satırına 5 kez dokun.
+3. **Ayarlar → Geliştirici seçenekleri**: **ADB hata ayıklama** ve **Kablosuz hata ayıklama** açık.
+4. Telefonda Akış Köprü → "Saat" kartı → **Saate yükle**.
+5. Saatte **Kablosuz hata ayıklama → Yeni cihaz eşleştir**. Telefon ekranı eşleştirme penceresini kendisi
+   bulur ("Eşleştirme ekranı bulundu"). Saatteki 6 haneli kodu gir → **Eşleştir ve saate yükle**.
+6. İlerleme çubuğu dolunca Akış saatte kendiliğinden açılır. Saatte "Kablosuz hata ayıklamaya izin
+   verilsin mi?" sorusu çıkarsa onayla.
+
+Sonraki güncellemelerde eşleştirme gerekmez: saatte Kablosuz hata ayıklama açıkken **Saate yükle**'ye
+basmak yeterli. Kurulumdan sonra Kablosuz hata ayıklamayı kapatabilirsin. Telefon pencereyi ya da saati
+bulamazsa ekrandaki "elle" alanlarına saatte görünen IP:port değerlerini yaz: eşleştirme penceresindeki
+port ile Kablosuz hata ayıklama ana ekranındaki port farklıdır.
+
+### 4B. Bilgisayardan (Wi-Fi üzerinden ADB)
 
 One UI Watch'ta menü adları sürüme göre biraz farklı olabilir.
 

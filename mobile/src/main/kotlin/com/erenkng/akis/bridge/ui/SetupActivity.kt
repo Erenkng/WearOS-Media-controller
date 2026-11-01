@@ -11,7 +11,11 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.lifecycleScope
 import com.erenkng.akis.bridge.BuildConfig
 import com.erenkng.akis.bridge.bridgeGraph
+import com.erenkng.akis.bridge.install.InstallerEntry
 import com.erenkng.akis.bridge.listener.NotificationAccess
+import com.erenkng.akis.shared.protocol.AkisCapabilities
+import com.google.android.gms.wearable.CapabilityClient
+import com.google.android.gms.wearable.Wearable
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 
@@ -27,6 +31,7 @@ class SetupActivity : ComponentActivity() {
                 state = uiState,
                 onGrantPermission = ::openPermissionSettings,
                 onOpenAppDetails = { startSafely(NotificationAccess.appDetailsIntent(this)) },
+                onInstallOnWatch = { InstallerEntry.open(this) },
             )
         }
     }
@@ -40,12 +45,25 @@ class SetupActivity : ComponentActivity() {
 
     private fun refresh() {
         val granted = NotificationAccess.isGranted(this)
-        uiState = uiState.copy(permissionGranted = granted, versionName = BuildConfig.VERSION_NAME)
+        uiState = uiState.copy(
+            permissionGranted = granted,
+            versionName = BuildConfig.VERSION_NAME,
+            installerAvailable = InstallerEntry.isAvailable,
+        )
         lifecycleScope.launch {
             val watches = runCatching { bridgeGraph.nodeClient.connectedNodes.await() }
                 .getOrDefault(emptyList())
-                .map { it.displayName }
-            uiState = uiState.copy(connectedWatches = watches)
+            // Saat uygulaması `akis_watch` capability'sini ilan eder; bağlı saat yoksa bilinemez.
+            val watchAppInstalled = if (watches.isEmpty()) {
+                null
+            } else {
+                runCatching {
+                    Wearable.getCapabilityClient(this@SetupActivity)
+                        .getCapability(AkisCapabilities.WATCH, CapabilityClient.FILTER_ALL).await()
+                        .nodes.isNotEmpty()
+                }.getOrNull()
+            }
+            uiState = uiState.copy(connectedWatches = watches.map { it.displayName }, watchAppInstalled = watchAppInstalled)
         }
     }
 

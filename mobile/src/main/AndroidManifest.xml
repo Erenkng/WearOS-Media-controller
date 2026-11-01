@@ -2,10 +2,10 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
-    <!-- Akış tamamen çevrimdışıdır (BRIEF Bölüm 11). Bir kütüphane eklese bile kaldırılır. -->
-    <uses-permission
-        android:name="android.permission.INTERNET"
-        tools:node="remove" />
+    <!--
+        İnternet izni burada yok. Release: src/release/AndroidManifest.xml izni açıkça kaldırır (BRIEF Bölüm 11).
+        Debug: src/debug/AndroidManifest.xml saate kablosuz kurulum için yalnızca yerel ağ bağlantısına izin verir.
+    -->
 
     <!--
         Android 11+ paket görünürlüğü: medya uygulamalarının adını/ikonunu okumak ve

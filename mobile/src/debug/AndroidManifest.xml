@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!--
+        Yalnızca debug: saate kablosuz ADB ile kurulum, saatle aynı Wi-Fi ağındaki yerel bağlantıyı gerektirir.
+        Uygulama bu izinle internete veri göndermez; release sürümünde bu izin yoktur.
+    -->
+    <uses-permission android:name="android.permission.INTERNET" />
+
+    <application>
+        <activity
+            android:name=".install.WatchInstallActivity"
+            android:exported="false"
+            android:label="@string/install_title"
+            android:windowSoftInputMode="adjustResize" />
+    </application>
+</manifest>

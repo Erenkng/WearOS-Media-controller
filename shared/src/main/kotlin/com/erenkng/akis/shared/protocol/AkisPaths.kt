@@ -38,6 +38,9 @@ object AkisPaths {
 object AkisCapabilities {
     /** Telefondaki köprü uygulamasının ilan ettiği capability (`res/values/wear.xml`). */
     const val BRIDGE = "akis_bridge"
+
+    /** Saatteki Akış uygulamasının ilan ettiği capability; telefon "saatte kurulu mu" bilgisini buradan alır. */
+    const val WATCH = "akis_watch"
 }
 
 /** DataItem içindeki DataMap anahtarları. */

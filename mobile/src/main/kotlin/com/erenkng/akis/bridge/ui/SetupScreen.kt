@@ -10,19 +10,13 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
-import androidx.compose.material3.darkColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -32,26 +26,11 @@ import com.erenkng.akis.bridge.R
 data class SetupUiState(
     val permissionGranted: Boolean = false,
     val connectedWatches: List<String> = emptyList(),
+    /** null: henüz bilinmiyor (saat bağlı değilse öğrenilemez). */
+    val watchAppInstalled: Boolean? = null,
+    /** "Saate yükle" yalnızca debug sürümünde var. */
+    val installerAvailable: Boolean = false,
     val versionName: String = "",
-)
-
-// BRIEF Bölüm 4, renk token'ları.
-private val Bg = Color(0xFF000000)
-private val Surface = Color(0xFF141416)
-private val OnSurface = Color(0xFFF2F0EB)
-private val OnSurfaceDim = Color(0xFF9C9890)
-private val Accent = Color(0xFFFF8A3D)
-private val Danger = Color(0xFFFF5A5F)
-
-private val AkisPhoneColors = darkColorScheme(
-    primary = Accent,
-    onPrimary = Bg,
-    background = Bg,
-    onBackground = OnSurface,
-    surface = Surface,
-    onSurface = OnSurface,
-    onSurfaceVariant = OnSurfaceDim,
-    error = Danger,
 )
 
 @Composable
@@ -59,12 +38,13 @@ fun SetupScreen(
     state: SetupUiState,
     onGrantPermission: () -> Unit,
     onOpenAppDetails: () -> Unit,
+    onInstallOnWatch: () -> Unit,
 ) {
-    MaterialTheme(colorScheme = AkisPhoneColors) {
+    AkisPhoneTheme {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Bg)
+                .background(PhoneColors.Bg)
                 .safeDrawingPadding()
                 .verticalScroll(rememberScrollState())
                 .padding(horizontal = 24.dp, vertical = 32.dp),
@@ -72,11 +52,11 @@ fun SetupScreen(
         ) {
             Text(
                 text = stringResource(R.string.setup_title),
-                color = OnSurface,
+                color = PhoneColors.OnSurface,
                 fontSize = 32.sp,
                 fontWeight = FontWeight.ExtraBold,
             )
-            Text(text = stringResource(R.string.setup_subtitle), color = OnSurfaceDim, fontSize = 16.sp)
+            Text(text = stringResource(R.string.setup_subtitle), color = PhoneColors.OnSurfaceDim, fontSize = 16.sp)
 
             Spacer(Modifier.height(8.dp))
 
@@ -85,26 +65,26 @@ fun SetupScreen(
                     text = stringResource(
                         if (state.permissionGranted) R.string.setup_permission_granted else R.string.setup_permission_missing,
                     ),
-                    color = if (state.permissionGranted) Accent else OnSurface,
+                    color = if (state.permissionGranted) PhoneColors.Accent else PhoneColors.OnSurface,
                     fontSize = 15.sp,
                 )
                 if (!state.permissionGranted) {
                     Button(
                         onClick = onGrantPermission,
                         modifier = Modifier.fillMaxWidth(),
-                        colors = ButtonDefaults.buttonColors(containerColor = Accent, contentColor = Bg),
+                        colors = ButtonDefaults.buttonColors(containerColor = PhoneColors.Accent, contentColor = PhoneColors.Bg),
                     ) {
                         Text(stringResource(R.string.setup_permission_button), fontWeight = FontWeight.Bold)
                     }
                 }
-                Text(text = stringResource(R.string.setup_privacy), color = OnSurfaceDim, fontSize = 13.sp)
+                Text(text = stringResource(R.string.setup_privacy), color = PhoneColors.OnSurfaceDim, fontSize = 13.sp)
             }
 
             if (!state.permissionGranted) {
                 SectionCard(title = stringResource(R.string.setup_restricted_title)) {
-                    Text(text = stringResource(R.string.setup_restricted_body), color = OnSurfaceDim, fontSize = 13.sp)
+                    Text(text = stringResource(R.string.setup_restricted_body), color = PhoneColors.OnSurfaceDim, fontSize = 13.sp)
                     OutlinedButton(onClick = onOpenAppDetails, modifier = Modifier.fillMaxWidth()) {
-                        Text(stringResource(R.string.setup_restricted_button), color = OnSurface)
+                        Text(stringResource(R.string.setup_restricted_button), color = PhoneColors.OnSurface)
                     }
                 }
             }
@@ -115,30 +95,40 @@ fun SetupScreen(
                 } else {
                     stringResource(R.string.setup_watch_connected, state.connectedWatches.joinToString())
                 }
-                Text(text = text, color = OnSurface, fontSize = 15.sp)
+                Text(text = text, color = PhoneColors.OnSurface, fontSize = 15.sp)
+                state.watchAppInstalled?.let { installed ->
+                    Text(
+                        text = stringResource(if (installed) R.string.setup_watch_app_installed else R.string.setup_watch_app_missing),
+                        color = if (installed) PhoneColors.Accent else PhoneColors.OnSurfaceDim,
+                        fontSize = 14.sp,
+                    )
+                }
+                if (state.installerAvailable) {
+                    val installed = state.watchAppInstalled == true
+                    Button(
+                        onClick = onInstallOnWatch,
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = if (installed) {
+                            ButtonDefaults.buttonColors(containerColor = PhoneColors.SurfaceHigh, contentColor = PhoneColors.OnSurface)
+                        } else {
+                            ButtonDefaults.buttonColors(containerColor = PhoneColors.Accent, contentColor = PhoneColors.Bg)
+                        },
+                    ) {
+                        Text(
+                            stringResource(if (installed) R.string.setup_watch_app_update else R.string.setup_watch_app_install),
+                            fontWeight = FontWeight.Bold,
+                        )
+                    }
+                }
             }
 
             if (state.versionName.isNotEmpty()) {
                 Text(
                     text = stringResource(R.string.setup_version, state.versionName),
-                    color = OnSurfaceDim,
+                    color = PhoneColors.OnSurfaceDim,
                     fontSize = 12.sp,
                 )
             }
-        }
-    }
-}
-
-@Composable
-private fun SectionCard(title: String, content: @Composable () -> Unit) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(24.dp),
-        colors = CardDefaults.cardColors(containerColor = Surface),
-    ) {
-        Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Text(text = title, color = OnSurface, fontSize = 18.sp, fontWeight = FontWeight.Bold)
-            content()
         }
     }
 }

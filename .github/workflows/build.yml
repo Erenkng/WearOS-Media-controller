@@ -25,6 +25,10 @@ jobs:
       - name: Debug APK'ları derle
         run: ./gradlew assembleDebug --continue
 
+      # Release yalnızca izin denetimi için derlenir (imzasız, yüklenmez).
+      - name: Telefon release APK'sını derle
+        run: ./gradlew :mobile:assembleRelease
+
       # İki APK da repodaki paylaşılan debug anahtarıyla imzalanmış olmalı (signing/README.md).
       # Data Layer, saat ve telefon uygulamasının aynı imzayı taşımasını şart koşar.
       - name: İmzaları doğrula
@@ -36,6 +40,25 @@ jobs:
             echo "$apk -> $digest"
             test "$digest" = "$EXPECTED"
           done
+
+      # Saat APK'sı telefon APK'sının içinde olmalı ("Saate yükle" bunu kurar).
+      # INTERNET yalnızca telefon debug sürümünde olmalı; release ve saat çevrimdışı (BRIEF Bölüm 11).
+      - name: Paket içeriğini ve izinleri doğrula
+        run: |
+          AAPT2="$(ls -d "$ANDROID_HOME"/build-tools/*/ | sort -V | tail -1)aapt2"
+          has_internet() { "$AAPT2" dump permissions "$1" | grep -q "android.permission.INTERNET"; }
+          unzip -l mobile/build/outputs/apk/debug/mobile-debug.apk | grep -q "assets/wear/akis-wear.apk"
+          echo "OK: saat APK'sı telefon debug APK'sının içinde"
+          has_internet mobile/build/outputs/apk/debug/mobile-debug.apk
+          echo "OK: telefon debug sürümünde yerel ağ izni var"
+          if has_internet mobile/build/outputs/apk/release/mobile-release-unsigned.apk; then
+            echo "HATA: telefon release sürümünde INTERNET izni olmamalı"; exit 1
+          fi
+          echo "OK: telefon release sürümü çevrimdışı"
+          if has_internet wear/build/outputs/apk/debug/wear-debug.apk; then
+            echo "HATA: saat uygulamasında INTERNET izni olmamalı"; exit 1
+          fi
+          echo "OK: saat uygulaması çevrimdışı"
 
       - uses: actions/upload-artifact@v4
         if: success()

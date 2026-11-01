@@ -3,25 +3,15 @@
 Uygulama sırasında emin olunamayan API davranışları ve brief'te açık bırakılan noktalar. Tahmin
 yürütülmedi. Her madde için davranışın nasıl doğrulanacağı ve sonucuna göre ne değişeceği yazıldı.
 
-## S1. Android katmanı derlenmedi, sürümler doğrulanmadı ⚠️
+## S1. Derleme ve sürümler ✅ (çözüldü)
 
-Geliştirme ortamında `dl.google.com` (Google Maven ve Android SDK) ağ politikasıyla engelliydi. Bu yüzden:
+Geliştirme ortamı Google Maven'a erişemediği için derleme GitHub Actions'a taşındı
+(`.github/workflows/build.yml`). İlk çalıştırmada 4 derleme hatası çıktı ve düzeltildi:
+`onAudioInfoChanged` imzası, `basicCurvedText` ve Wear `PagerState`. Şu an her push'ta birim testleri,
+iki debug APK'nın derlenmesi, imza kontrolü ve izin kontrolü geçiyor. `libs.versions.toml`'daki
+sürümlerin hepsi çözüldü.
 
-- **Doğrulanan:** `:shared` modülünün tamamı ve `:mobile`/`:wear` içindeki saf Kotlin mantığı Maven
-  Central ile derlendi, 44 birim testi geçti. Tüm `.kt` dosyaları ktlint ile ayrıştırıldı, sözdizimi
-  hatası yok. Kodda geçen her `R.string`/`R.drawable`/`R.font` referansı kaynak dosyalarında tanımlı.
-- **Doğrulanmayan:** Android modüllerinin derlenmesi, `gradle/libs.versions.toml` içindeki AndroidX
-  sürümleri ve bazı yeni API imzaları.
-
-İlk Android Studio sync/derlemesinde hata çıkma ihtimali en yüksek yerler:
-
-| Yer | API | Olası düzeltme |
-|---|---|---|
-| `libs.versions.toml` | AGP 8.13.0, Compose BOM 2025.08.00, Wear Compose 1.5.0, Tiles 1.5.0, ProtoLayout 1.3.0, Lifecycle 2.9.2 | Studio'nun önerdiği güncel kararlı sürümlere yükselt |
-| `tile/MediaTileLayout.kt` | ProtoLayout Material 3 Kotlin DSL: `materialScope`, `primaryLayout`, `iconButton`, `buttonGroup`, `avatarImage`, `textEdgeButton` | Parametre adları sürüme göre değişmiş olabilir |
-| `ui/sources`, `ui/settings` | `ScreenScaffold(scrollState) { contentPadding -> }`, `TransformingLazyColumn`, `FilledTonalButton(icon, secondaryLabel, label)` | Wear M3 1.5 imzalarına göre küçük düzeltme |
-| `ui/main`, `ui/onboarding` | `VerticalPageIndicator(pagerState)` (compose foundation `PagerState` ile) | Gerekirse `VerticalPagerScaffold` kullan |
-| `tile/MediaTileService.kt` | `onTileResourcesRequest` | Yeni sürümlerde `onResourcesRequest` olabilir |
+Henüz yapılmayan: gerçek cihazda çalıştırma (bkz. `docs/TESTING.md`).
 
 ## S2. Wear OS 6'da saatteki uygulamaya bildirim erişimi verilebiliyor mu? (brief)
 
@@ -102,3 +92,19 @@ eklenebilir.
 
 Paket adı `com.erenkng.akis`. Görünen ad (`app_name`) değişirse paket adının değişmesi gerekmez.
 Paket adı değişirse iki modülün `applicationId`'si birlikte değişmeli.
+
+## S13. Telefondan saate kablosuz kurulum (yalnızca debug)
+
+"Saate yükle" ekranı libadb-android (JitPack, Apache-2.0 lisansıyla kullanılıyor) üzerinden saatin
+kablosuz hata ayıklamasına bağlanıp `cmd package install` ile APK'yı akıtır. Gerçek cihazda doğrulanacaklar:
+
+- **Wi-Fi:** Galaxy Watch, telefona Bluetooth ile bağlıyken Wi-Fi'yi kapatabilir. Kurulum sırasında saatin
+  Wi-Fi'ye bağlı kalması gerekir.
+- **mDNS keşfi:** Telefonun `_adb-tls-pairing._tcp` / `_adb-tls-connect._tcp` servislerini bulması bazı
+  ağlarda (misafir ağı, istemci yalıtımı) engellenebilir. Bu durumda ekrandaki "elle IP:port" alanları kullanılır.
+- **Akış kurulumu:** `exec:cmd package install -r -S <boyut>` Wear OS 6'da çalışmalı (Android 7+ özelliği).
+  Çalışmazsa yedek yol: önce `sync:` ile `/data/local/tmp`'ye yükleyip `pm install`.
+- **Güvenlik:** Telefon uygulaması saatte ADB yetkisi olan bir anahtar tutar (uygulamanın özel klasöründe).
+  Kurulumdan sonra saatte Kablosuz hata ayıklamanın kapatılması önerilir. Bu özellik ve INTERNET izni
+  yalnızca debug sürümünde var; release sürümü brief'teki gibi çevrimdışı (CI bunu her derlemede kontrol ediyor).
+- **Play Store:** Uygulama Play'de yayınlandığında saat uygulaması oradan otomatik kurulur ve bu ekran gerekmez.

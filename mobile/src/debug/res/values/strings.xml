@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Yalnızca debug: "Saate yükle" ekranı (saate kablosuz ADB ile kurulum). -->
+<resources>
+    <string name="install_title">Saate yükle</string>
+    <string name="install_subtitle">Akış\'ın saat uygulaması bu telefon uygulamasının içinde geliyor. Saatle aynı Wi-Fi ağındayken buradan saate kurulur. Bilgisayar gerekmez.</string>
+
+    <string name="install_prepare_title">1 · Saatte hazırlık (bir kez)</string>
+    <string name="install_prepare_wifi">Saati telefonla aynı Wi-Fi ağına bağla: Ayarlar → Bağlantılar → Wi-Fi.</string>
+    <string name="install_prepare_developer">Ayarlar → Saat hakkında → Yazılım bilgisi → Yazılım sürümü satırına 5 kez dokun. Geliştirici seçenekleri açılır.</string>
+    <string name="install_prepare_debugging">Ayarlar → Geliştirici seçenekleri: ADB hata ayıklama ve Kablosuz hata ayıklama açık olsun.</string>
+    <string name="install_prepare_pair">Kablosuz hata ayıklama → Yeni cihaz eşleştir. Saatte 6 haneli bir kod çıkar; o ekran açık kalsın.</string>
+
+    <string name="install_pair_title">2 · Eşleştir</string>
+    <string name="install_pair_searching">Saatte \"Yeni cihaz eşleştir\" ekranı aranıyor…</string>
+    <string name="install_pair_found">Eşleştirme ekranı bulundu: %1$s</string>
+    <string name="install_pair_code">Saatteki 6 haneli kod</string>
+    <string name="install_pair_manual">Bulunamazsa elle: IP:port (eşleştirme ekranındaki)</string>
+    <string name="install_pair_button">Eşleştir ve saate yükle</string>
+    <string name="install_paired">Bu telefon saatle eşleşti. Bir sonraki sefer kod gerekmez.</string>
+    <string name="install_pair_again">Yeniden eşleştir</string>
+
+    <string name="install_install_title">3 · Yükle</string>
+    <string name="install_watch_searching">Saat aranıyor… (Kablosuz hata ayıklama açık olmalı)</string>
+    <string name="install_watch_found">Saat bulundu: %1$s</string>
+    <string name="install_connect_manual">Bulunamazsa elle: IP:port (Kablosuz hata ayıklama ekranındaki)</string>
+    <string name="install_button">Saate yükle</string>
+    <string name="install_done">Akış saate kuruldu ve açıldı. İstersen saatte Kablosuz hata ayıklamayı şimdi kapatabilirsin.</string>
+    <string name="install_close">Kapat</string>
+
+    <string name="install_phase_pairing">Eşleştiriliyor…</string>
+    <string name="install_phase_connecting">Saate bağlanılıyor…</string>
+    <string name="install_phase_installing">Saate kuruluyor…</string>
+    <string name="install_phase_launching">Saatte açılıyor…</string>
+
+    <string name="install_error_no_apk">Bu sürümde saat uygulaması paketlenmemiş. Uygulamayı GitHub Actions\'tan indirdiğin debug APK ile kur.</string>
+    <string name="install_error_no_pairing_window">Eşleştirme ekranı bulunamadı. Saatte \"Yeni cihaz eşleştir\"i açık tut ya da IP:port\'u elle gir.</string>
+    <string name="install_error_code">Saatteki 6 haneli kodu gir.</string>
+    <string name="install_error_pair">Eşleştirme başarısız. Kodu ve saatteki ekranın hâlâ açık olduğunu kontrol et. %1$s</string>
+    <string name="install_error_no_watch">Saat ağda bulunamadı. Saatte Kablosuz hata ayıklamanın açık ve saatin telefonla aynı Wi-Fi\'de olduğunu kontrol et ya da IP:port\'u elle gir.</string>
+    <string name="install_error_connect">Saate bağlanılamadı. %1$s</string>
+    <string name="install_error_needs_pairing">Saat bu telefonu tanımıyor. Önce eşleştir.</string>
+    <string name="install_error_transfer">Kurulum sırasında bağlantı koptu. %1$s</string>
+
+    <string name="install_fail_signature">Saatte farklı imzalı eski bir Akış var. Saatte Akış\'ı kaldırıp tekrar dene.</string>
+    <string name="install_fail_storage">Saatte yeterli boş yer yok.</string>
+    <string name="install_fail_downgrade">Saatte daha yeni bir Akış sürümü kurulu.</string>
+    <string name="install_fail_old_watch">Saatin Wear OS sürümü çok eski (en az Wear OS 4 gerekir).</string>
+    <string name="install_fail_generic">Kurulum başarısız: %1$s</string>
+</resources>

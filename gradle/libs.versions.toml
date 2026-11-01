@@ -25,6 +25,11 @@ concurrentFutures = "1.2.0"
 
 junit = "4.13.2"
 
+# Saate kablosuz kurulum (yalnızca :mobile debug)
+libadb = "3.1.1"
+conscrypt = "2.5.3"
+bouncycastle = "1.81"
+
 [libraries]
 # Kotlin
 kotlinx-coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version.ref = "coroutines" }
@@ -62,6 +67,11 @@ wear-remote-interactions = { module = "androidx.wear:wear-remote-interactions", 
 
 # Google Play hizmetleri — Data Layer
 play-services-wearable = { module = "com.google.android.gms:play-services-wearable", version.ref = "playServicesWearable" }
+
+# Saate kablosuz kurulum (yalnızca :mobile debug)
+libadb-android = { module = "com.github.MuntashirAkon:libadb-android", version.ref = "libadb" }
+conscrypt-android = { module = "org.conscrypt:conscrypt-android", version.ref = "conscrypt" }
+bouncycastle-bcpkix = { module = "org.bouncycastle:bcpkix-jdk15to18", version.ref = "bouncycastle" }
 
 # Test
 junit = { module = "junit:junit", version.ref = "junit" }

@@ -106,6 +106,8 @@ class StatePublisher(
         val next = mapped?.state
         if (PublishPolicy.shouldPublish(lastPublished, lastPublishedAtMs, next, now, subscription.level.value, forced)) {
             if (putState(next, mapped?.art)) {
+                // Kabul kriteri ölçümü için (docs/TESTING.md, K1): saatteki "durum ←" satırıyla karşılaştırılır.
+                Log.d(TAG, "durum → ${next?.title} [${next?.state}] art=${next?.artHash}")
                 lastPublished = next
                 lastPublishedAtMs = now
                 hasPublishedOnce = true

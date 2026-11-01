@@ -17,23 +17,23 @@ import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 class FocusPolicyTest {
-    private val spotifyLike = FocusCandidate("music/1", isPlaying = false)
+    private val music = FocusCandidate("music/1", isPlaying = false)
     private val youtube = FocusCandidate("video/2", isPlaying = true)
     private val podcast = FocusCandidate("pod/3", isPlaying = true)
 
     @Test
     fun userSelectionWins() {
-        assertEquals("music/1", FocusPolicy.choose(listOf(spotifyLike, youtube), "music/1", null))
+        assertEquals("music/1", FocusPolicy.choose(listOf(music, youtube), "music/1", null))
     }
 
     @Test
     fun firstPlayingInPriorityOrder() {
-        assertEquals("video/2", FocusPolicy.choose(listOf(spotifyLike, youtube, podcast), null, null))
+        assertEquals("video/2", FocusPolicy.choose(listOf(music, youtube, podcast), null, null))
     }
 
     @Test
     fun lastPlayingWhenNothingPlays() {
-        val paused = listOf(spotifyLike, youtube.copy(isPlaying = false))
+        val paused = listOf(music, youtube.copy(isPlaying = false))
         assertEquals("video/2", FocusPolicy.choose(paused, null, "video/2"))
         assertEquals("music/1", FocusPolicy.choose(paused, null, "gone/9"))
     }

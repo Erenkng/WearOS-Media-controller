@@ -45,12 +45,13 @@ import com.erenkng.akis.wear.player.TransportMode
 import com.erenkng.akis.wear.player.VolumeDisplay
 import com.erenkng.akis.wear.player.VolumeFeedback
 import com.erenkng.akis.wear.player.rememberPosition
+import com.erenkng.akis.wear.ui.common.rememberClockText
 import com.erenkng.akis.wear.ui.common.rememberHaptics
 import com.erenkng.akis.wear.ui.theme.AkisColors
 import com.erenkng.akis.wear.ui.theme.AkisType
 import com.erenkng.akis.wear.ui.theme.LocalAccent
 
-/** Şimdi Çalıyor ekranından tetiklenen eylemler. Titreşimler ekranın içinde verilir. */
+/** Şimdi Çalıyor ve Odak ekranlarından tetiklenen eylemler. Titreşimler ekranların içinde verilir. */
 class NowPlayingActions(
     val onPlayPause: () -> Unit,
     val onNext: () -> Unit,
@@ -60,16 +61,23 @@ class NowPlayingActions(
     val onRetry: () -> Unit,
     /** Desteklenmeyen eylem: "Bu uygulama desteklemiyor". */
     val onUnsupported: () -> Unit,
-    /** ⋯ menüsü Faz 2'de. */
-    val onMore: () -> Unit,
+    /** Uygulamanın "beğen" özel eylemi. */
+    val onLike: () -> Unit,
+    /** Alt ortadaki buton: Kaynaklar paneline geçer. */
+    val onOpenSources: () -> Unit,
 )
 
 /** Referans ekran çapı (BRIEF Bölüm 6): tüm ölçüler buna oranla ölçeklenir. */
-private val ReferenceDiameter = 225.dp
+internal val ReferenceDiameter = 225.dp
 
 /**
- * Uygulamanın açılış ekranı (BRIEF Bölüm 6). Wear OS'un 5 butonlu medya düzeni; konumlar ekran
- * çapının yüzdesi olarak [PercentLayout] ile yerleşir.
+ * Uygulamanın açılış ekranı. Yerleşim, kullanıcının referans tasarımına göre (ekran çapının yüzdesi):
+ *
+ * - y %8 saat · y %18 şarkı adı (büyük, kalın) · y %28,5 uygulama ikonu + sanatçı (vurgu rengi)
+ * - y %50 önceki · oynat/duraklat (çevresinde ilerleme halkası) · sonraki
+ * - y %75–83 beğen · Kaynaklar · çıkış (harici çıkışta vurgu rengi + alt çizgi)
+ *
+ * Döner çerçeve sesi değiştirir; gösterge kontrolleri kapatmaz (bkz. [VolumeOverlay]).
  */
 @Composable
 fun NowPlayingScreen(
@@ -100,10 +108,10 @@ fun NowPlayingScreen(
         val scale = diameter / ReferenceDiameter
         val disconnected = state.screen == PlayerScreen.Disconnected
 
-        Backdrop(
+        ArtworkBackdrop(
             artwork = state.artwork,
             appIcon = state.appIcon,
-            dimmedForPause = state.isPaused,
+            scrim = if (state.isPaused) PausedScrim else PlayerScrim,
             grayscale = disconnected,
             visible = state.track != null,
         )
@@ -128,8 +136,12 @@ fun NowPlayingScreen(
                         haptics.previous()
                         actions.onPrevious()
                     },
-                    onVolumeClick = { volumeTrigger++ },
-                    onMore = actions.onMore,
+                    onLike = {
+                        haptics.play()
+                        actions.onLike()
+                    },
+                    onOpenSources = actions.onOpenSources,
+                    onOutputClick = { volumeTrigger++ },
                     onUnsupported = {
                         haptics.error()
                         actions.onUnsupported()
@@ -176,101 +188,112 @@ private fun PlayerContent(
     onPlayPause: () -> Unit,
     onNext: () -> Unit,
     onPrevious: () -> Unit,
-    onVolumeClick: () -> Unit,
-    onMore: () -> Unit,
+    onLike: () -> Unit,
+    onOpenSources: () -> Unit,
+    onOutputClick: () -> Unit,
     onUnsupported: () -> Unit,
 ) {
-    val accent = LocalAccent.current
+    val accent = LocalAccent.current.accent
     val position = rememberPosition(track, isPlaying = state.isPlaying, active = isActivePage)
     val largeText = LocalDensity.current.fontScale > 1.15f
     val seekMode = state.transportMode == TransportMode.SEEK
+    val clock = rememberClockText()
 
     PercentLayout(Modifier.fillMaxSize()) {
-        // Konumsuz çocuklar tüm alanı kaplar.
-        if (track.isLive) {
-            CurvedBottomText(text = stringResource(R.string.live), style = AkisType.sourceLabel.copy(color = accent.accent))
-        } else {
-            ProgressRing(position = position, durationMs = track.durationMs, color = accent.accent)
-            CurvedDuration(position = position, durationMs = track.durationMs)
-        }
+        ShadowedText(text = clock, style = AkisType.clock, modifier = Modifier.percentPosition(0.5f, 0.08f))
 
-        SourceLabel(
-            appLabel = track.appLabel,
-            icon = state.appIcon,
-            maxWidth = diameter * 0.6f,
-            modifier = Modifier.percentPosition(0.5f, 0.20f),
-        )
         TrackTitle(
             title = track.title,
-            width = diameter * 0.70f,
+            style = AkisType.trackTitle,
+            width = diameter * 0.74f,
             largeText = largeText,
-            modifier = Modifier.percentPosition(0.5f, if (largeText) 0.34f else 0.32f),
+            modifier = Modifier.percentPosition(0.5f, if (largeText) 0.2f else 0.18f),
         )
         if (!largeText) {
-            ArtistText(
-                artist = track.artist,
-                width = diameter * 0.65f,
-                modifier = Modifier.percentPosition(0.5f, 0.40f),
+            ArtistLine(
+                artist = track.artist.ifBlank { track.appLabel },
+                appIcon = state.appIcon,
+                color = accent,
+                style = AkisType.artist,
+                iconSize = 16.dp,
+                maxWidth = diameter * 0.70f,
+                modifier = Modifier.percentPosition(0.5f, 0.285f),
             )
         }
 
-        CircleIconButton(
+        PlainIconButton(
             icon = if (seekMode) R.drawable.ic_fast_rewind else R.drawable.ic_skip_previous,
             contentDescription = stringResource(if (seekMode) R.string.cd_seek_back else R.string.cd_previous),
-            size = 44.dp * scale,
+            iconSize = 38.dp * scale,
             enabled = state.canPrevious,
             onClick = onPrevious,
             onDisabledClick = onUnsupported,
-            modifier = Modifier.percentPosition(0.22f, 0.55f),
+            modifier = Modifier.percentPosition(0.18f, 0.5f),
         )
-        PlayPauseButton(
+        PlayPauseRing(
             isPlaying = state.isPlaying,
             isBuffering = state.isBuffering,
             enabled = state.canPlayPause,
-            accent = accent.accent,
-            onAccent = accent.onAccent,
-            size = 64.dp * scale,
+            progress = if (track.isLive) null else ({ position.value.toFloat() / track.durationMs }),
+            accent = accent,
+            size = 66.dp * scale,
             onClick = onPlayPause,
             onDisabledClick = onUnsupported,
-            modifier = Modifier.percentPosition(0.5f, 0.55f),
+            modifier = Modifier.percentPosition(0.5f, 0.5f),
         )
-        CircleIconButton(
+        PlainIconButton(
             icon = if (seekMode) R.drawable.ic_fast_forward else R.drawable.ic_skip_next,
             contentDescription = stringResource(if (seekMode) R.string.cd_seek_forward else R.string.cd_next),
-            size = 44.dp * scale,
+            iconSize = 38.dp * scale,
             enabled = state.canNext,
             onClick = onNext,
             onDisabledClick = onUnsupported,
-            modifier = Modifier.percentPosition(0.78f, 0.55f),
+            modifier = Modifier.percentPosition(0.82f, 0.5f),
         )
 
-        CircleIconButton(
+        if (track.isLive) {
+            ShadowedText(
+                text = stringResource(R.string.live),
+                style = AkisType.live.copy(color = accent),
+                modifier = Modifier.percentPosition(0.5f, 0.655f),
+            )
+        }
+
+        // Alt sıra, ekranın kavsini izler: kenarlar biraz yukarıda, orta biraz aşağıda.
+        state.likeAction?.let { like ->
+            PlainIconButton(
+                icon = if (like.liked) R.drawable.ic_favorite_filled else R.drawable.ic_favorite,
+                contentDescription = stringResource(if (like.liked) R.string.cd_unlike else R.string.cd_like),
+                iconSize = 28.dp * scale,
+                tint = if (like.liked) accent else AkisColors.OnSurface,
+                onClick = onLike,
+                modifier = Modifier.percentPosition(0.25f, 0.755f),
+            )
+        }
+        PlainIconButton(
+            icon = R.drawable.ic_library_music,
+            contentDescription = stringResource(R.string.cd_sources),
+            iconSize = 28.dp * scale,
+            onClick = onOpenSources,
+            modifier = Modifier.percentPosition(0.5f, 0.83f),
+        )
+        PlainIconButton(
             icon = outputIcon(state.outputKind, track.isVolumeControllable),
             contentDescription = if (track.isVolumeControllable) {
                 stringResource(R.string.cd_volume, track.volume, track.volumeMax)
             } else {
                 stringResource(R.string.cd_volume_locked)
             },
-            size = 36.dp * scale,
-            enabled = true,
-            onClick = onVolumeClick,
-            onDisabledClick = onVolumeClick,
-            modifier = Modifier.percentPosition(0.35f, 0.77f),
-        )
-        CircleIconButton(
-            icon = R.drawable.ic_more_horiz,
-            contentDescription = stringResource(R.string.cd_more),
-            size = 36.dp * scale,
-            // Faz 2 kancası: ⋯ menüsü (sıra, uyku zamanlayıcısı, karıştır/tekrarla, özel eylemler).
-            enabled = false,
-            onClick = onMore,
-            onDisabledClick = onMore,
-            modifier = Modifier.percentPosition(0.65f, 0.77f),
+            iconSize = 28.dp * scale,
+            tint = if (state.isExternalOutput) accent else AkisColors.OnSurface,
+            underline = if (state.isExternalOutput) accent else null,
+            onClick = onOutputClick,
+            modifier = Modifier.percentPosition(0.75f, 0.755f),
         )
     }
 }
 
-private fun outputIcon(kind: OutputKind, controllable: Boolean): Int = when {
+internal fun outputIcon(kind: OutputKind, controllable: Boolean): Int = when {
     !controllable -> R.drawable.ic_lock
     kind == OutputKind.HEADPHONES -> R.drawable.ic_headphones
     kind == OutputKind.REMOTE -> R.drawable.ic_cast
@@ -278,15 +301,23 @@ private fun outputIcon(kind: OutputKind, controllable: Boolean): Int = when {
     else -> R.drawable.ic_smartphone
 }
 
+/** Şimdi Çalıyor karartması: kapak görünür kalır, üstteki saat/başlık ve alt sıra okunur (referans tasarım). */
+internal val PlayerScrim = listOf(0f to 0.62f, 0.32f to 0.42f, 0.68f to 0.42f, 1f to 0.66f)
+
+/** Duraklatıldı: kapak biraz daha karanlık (BRIEF Bölüm 6). */
+internal val PausedScrim = PlayerScrim.map { (stop, alpha) -> stop to (alpha + 0.15f).coerceAtMost(0.85f) }
+
 /**
- * Kapak sanatı tam ekran arka plan + dikey karartma (üst %35, orta %55, alt %85).
- * Kapak yoksa uygulama ikonu büyütülüp bulanıklaştırılır (BRIEF Bölüm 11, kenar durumlar).
+ * Kapak sanatı tam ekran arka plan + dikey karartma. Kapak yoksa uygulama ikonu büyütülüp
+ * bulanıklaştırılır (BRIEF Bölüm 11, kenar durumlar).
+ *
+ * @param scrim (konum 0..1, siyah opaklığı) durakları.
  */
 @Composable
-private fun Backdrop(
+internal fun ArtworkBackdrop(
     artwork: Bitmap?,
     appIcon: Bitmap?,
-    dimmedForPause: Boolean,
+    scrim: List<Pair<Float, Float>>,
     grayscale: Boolean,
     visible: Boolean,
 ) {
@@ -306,23 +337,14 @@ private fun Backdrop(
             )
         }
     }
-    Box(
-        Modifier
-            .fillMaxSize()
-            .background(
-                Brush.verticalGradient(
-                    0f to Color.Black.copy(alpha = 0.35f),
-                    0.5f to Color.Black.copy(alpha = 0.55f),
-                    1f to Color.Black.copy(alpha = 0.85f),
-                ),
-            ),
-    )
-    // Duraklatıldı: kapak %20 daha karanlık.
-    if (dimmedForPause) Box(Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.2f)))
+    if (scrim.isNotEmpty()) {
+        val stops = remember(scrim) { scrim.map { (stop, alpha) -> stop to Color.Black.copy(alpha = alpha) }.toTypedArray() }
+        Box(Modifier.fillMaxSize().background(Brush.verticalGradient(*stops)))
+    }
 }
 
 @Composable
-private fun MessageContent(
+internal fun MessageContent(
     icon: Int,
     message: String,
     buttonLabel: String,
@@ -330,6 +352,7 @@ private fun MessageContent(
     diameter: Dp,
     onClick: () -> Unit,
 ) {
+    val accent = LocalAccent.current
     Column(
         modifier = Modifier.fillMaxSize(),
         verticalArrangement = Arrangement.spacedBy(10.dp, Alignment.CenterVertically),
@@ -349,14 +372,11 @@ private fun MessageContent(
         )
         Button(
             onClick = onClick,
-            colors = ButtonDefaults.buttonColors(
-                containerColor = LocalAccent.current.accent,
-                contentColor = LocalAccent.current.onAccent,
-            ),
+            colors = ButtonDefaults.buttonColors(containerColor = accent.accent, contentColor = accent.onAccent),
             icon = {
                 Icon(painter = painterResource(buttonIcon), contentDescription = null, modifier = Modifier.size(20.dp))
             },
-            label = { Text(text = buttonLabel, style = AkisType.button.copy(color = LocalAccent.current.onAccent)) },
+            label = { Text(text = buttonLabel, style = AkisType.button.copy(color = accent.onAccent)) },
         )
     }
 }

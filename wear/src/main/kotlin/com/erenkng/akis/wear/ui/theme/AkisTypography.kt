@@ -18,19 +18,29 @@ val Manrope = FontFamily(
 )
 
 /**
- * BRIEF Bölüm 4, "Tipografi". Tüm metinler bu stilleri açıkça kullanır; böylece Material
- * bileşenlerinin varsayılan yazı tipi Akış'ın görünümüne sızmaz.
+ * Tüm metinler bu stilleri açıkça kullanır; Material bileşenlerinin varsayılan yazı tipi Akış'ın görünümüne sızmaz.
  * `TextDirection.Content`: Arapça şarkı adları gibi sağdan sola metinler doğru yönde akar.
+ *
+ * Oynatıcı ölçüleri, kullanıcının referans ekranlarındaki oranlara göre (225 dp çaplı ekran):
+ * saat ~18 sp, şarkı adı ~22 sp, sanatçı ~16 sp; Odak ekranında başlık 24 sp.
  */
 object AkisType {
     private val base = TextStyle(fontFamily = Manrope, color = AkisColors.OnSurface, textDirection = TextDirection.Content)
 
-    val trackTitle = base.copy(fontSize = 16.sp, fontWeight = FontWeight.ExtraBold)
-    val artist = base.copy(fontSize = 13.sp, fontWeight = FontWeight.Medium, color = AkisColors.OnSurfaceDim)
-    val sourceLabel = base.copy(fontSize = 10.sp, fontWeight = FontWeight.SemiBold, letterSpacing = 0.08.em, color = AkisColors.OnSurfaceDim)
-    val duration = base.copy(fontSize = 11.sp, fontWeight = FontWeight.Medium, fontFeatureSettings = "tnum", color = AkisColors.OnSurfaceDim)
-    val volumeNumber = base.copy(fontSize = 30.sp, fontWeight = FontWeight.ExtraBold, fontFeatureSettings = "tnum")
+    // Oynatıcı
+    val clock = base.copy(fontSize = 17.sp, fontWeight = FontWeight.SemiBold, fontFeatureSettings = "tnum")
+    val trackTitle = base.copy(fontSize = 22.sp, fontWeight = FontWeight.ExtraBold, lineHeight = 26.sp)
+    val artist = base.copy(fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
+    val live = base.copy(fontSize = 11.sp, fontWeight = FontWeight.ExtraBold, letterSpacing = 0.12.em)
+    val volumeValue = base.copy(fontSize = 15.sp, fontWeight = FontWeight.ExtraBold, fontFeatureSettings = "tnum")
 
+    // Odak Modu
+    val focusClock = base.copy(fontSize = 19.sp, fontWeight = FontWeight.ExtraBold, fontFeatureSettings = "tnum")
+    val focusTitle = base.copy(fontSize = 24.sp, fontWeight = FontWeight.ExtraBold, lineHeight = 28.sp)
+    val focusArtist = base.copy(fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
+
+    // Listeler ve diğer ekranlar
+    val sourceLabel = base.copy(fontSize = 10.sp, fontWeight = FontWeight.SemiBold, letterSpacing = 0.08.em, color = AkisColors.OnSurfaceDim)
     val screenTitle = base.copy(fontSize = 16.sp, fontWeight = FontWeight.ExtraBold)
     val sectionHeader = base.copy(fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = AkisColors.OnSurfaceDim)
     val body = base.copy(fontSize = 14.sp, fontWeight = FontWeight.Medium)

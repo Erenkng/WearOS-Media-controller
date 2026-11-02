@@ -18,6 +18,7 @@ Müzik ve video uygulamaları, podcast uygulamaları ve tarayıcı — `MediaSes
 - [`docs/BRIEF.md`](docs/BRIEF.md): tasarım ve teknik brief
 - [`docs/PLAN.md`](docs/PLAN.md): Faz 1 uygulama planı ve onaylanan kararlar
 - [`docs/TESTING.md`](docs/TESTING.md): kurulum (Galaxy Watch'a Wi-Fi ADB dahil) ve kabul kriteri testleri
+- [`docs/UI.md`](docs/UI.md): saat arayüzünün güncel yerleşimi ve brief'ten farkları
 - [`docs/OPEN_QUESTIONS.md`](docs/OPEN_QUESTIONS.md): açık sorular ve doğrulanmamış noktalar
 
 ## Durum

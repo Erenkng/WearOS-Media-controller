@@ -8,6 +8,7 @@ import android.media.session.MediaController
 import android.os.Build
 import android.util.Log
 import com.erenkng.akis.bridge.R
+import com.erenkng.akis.bridge.session.OutputNames
 
 /** Ses okuma/yazma ve çıkış etiketi (BRIEF Bölüm 10, "Ses"). */
 class VolumeController(private val context: Context) {
@@ -63,7 +64,8 @@ class VolumeController(private val context: Context) {
         if (isRemote) return context.getString(R.string.output_remote)
         val outputs = audioManager.getDevices(AudioManager.GET_DEVICES_OUTPUTS)
         outputs.firstOrNull { it.type in BLUETOOTH_TYPES }?.let { device ->
-            val name = device.productName?.toString()?.takeIf { it.isNotBlank() }
+            // "Eren Doğu adlı kişiye ait Buds3 FE" → "Buds3 FE"
+            val name = device.productName?.toString()?.let(OutputNames::shorten)?.takeIf { it.isNotBlank() }
             return if (name != null) {
                 context.getString(R.string.output_bluetooth_suffix, name)
             } else {

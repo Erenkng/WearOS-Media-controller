@@ -24,6 +24,7 @@ class PlayerViewModel(private val graph: WearGraph) : ViewModel() {
     private val connection = graph.connection
 
     private val optimisticPlaying = MutableStateFlow<Boolean?>(null)
+    private val optimisticLiked = MutableStateFlow<Boolean?>(null)
 
     private val _events = MutableSharedFlow<PlayerEvent>(extraBufferCapacity = 4)
     val events: SharedFlow<PlayerEvent> = _events
@@ -32,8 +33,8 @@ class PlayerViewModel(private val graph: WearGraph) : ViewModel() {
         sender.send(Command.AdjustVolume(delta))?.takeIf { it.ok }?.volume
     }
 
-    private val trackAndArt = combine(repository.nowPlaying, optimisticPlaying) { nowPlaying, optimistic ->
-        Triple(nowPlaying.state, nowPlaying.artwork, optimistic)
+    private val trackAndArt = combine(repository.nowPlaying, optimisticPlaying, optimisticLiked) { nowPlaying, optimistic, liked ->
+        TrackAndArt(nowPlaying.state, nowPlaying.artwork, optimistic, liked)
     }
 
     private val environment = combine(
@@ -48,25 +49,27 @@ class PlayerViewModel(private val graph: WearGraph) : ViewModel() {
         environment,
         repository.sessions,
         repository.icons,
-    ) { (track, art, optimistic), env, sessions, icons ->
+    ) { current, env, sessions, icons ->
         PlayerUiState.reduce(
-            track = track,
-            artwork = art,
+            track = current.track,
+            artwork = current.artwork,
             connection = env.status,
             bridgeStatus = env.bridge,
             bridgeName = env.bridgeName,
             welcomeSeen = env.welcomeSeen,
-            optimisticPlaying = optimistic,
+            optimisticPlaying = current.optimisticPlaying,
             sessions = sessions,
             icons = icons,
+            optimisticLiked = current.optimisticLiked,
         )
     }.stateIn(viewModelScope, SharingStarted.Eagerly, PlayerUiState())
 
     init {
         viewModelScope.launch {
             repository.nowPlaying.map { it.state }.distinctUntilChanged().collect { state ->
-                // Telefondan gerçek durum geldi: iyimser değer artık gereksiz.
+                // Telefondan gerçek durum geldi: iyimser değerler artık gereksiz.
                 optimisticPlaying.value = null
+                optimisticLiked.value = null
                 if (state != null) volume.onRemoteVolume(state.volume, state.volumeMax)
             }
         }
@@ -93,6 +96,13 @@ class PlayerViewModel(private val graph: WearGraph) : ViewModel() {
     )
 
     fun onResumeLast(packageName: String? = null) = launchCommand(Command.ResumeLast(packageName))
+
+    /** Uygulamanın "beğen" özel eylemi; görünüm dokunur dokunmaz değişir, telefon onaylayınca kesinleşir. */
+    fun onLike() {
+        val like = uiState.value.likeAction ?: return
+        optimisticLiked.value = !like.liked
+        launchCommand(Command.Custom(like.actionId)) { optimisticLiked.value = null }
+    }
 
     fun onFocusSession(sessionId: String) = launchCommand(Command.FocusSession(sessionId))
 
@@ -122,6 +132,13 @@ class PlayerViewModel(private val graph: WearGraph) : ViewModel() {
             }
         }
     }
+
+    private data class TrackAndArt(
+        val track: com.erenkng.akis.shared.model.NowPlayingState?,
+        val artwork: android.graphics.Bitmap?,
+        val optimisticPlaying: Boolean?,
+        val optimisticLiked: Boolean?,
+    )
 
     private data class Environment(
         val status: com.erenkng.akis.wear.data.ConnectionStatus,

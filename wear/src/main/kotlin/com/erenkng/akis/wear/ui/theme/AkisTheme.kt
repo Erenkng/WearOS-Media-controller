@@ -24,10 +24,14 @@ private val AkisColorScheme = ColorScheme(
     onError = AkisColors.Bg,
 )
 
+/** @param accent kapaktan çıkan (ya da sabit) vurgu; bkz. [rememberArtworkAccent]. */
 @Composable
-fun AkisTheme(content: @Composable () -> Unit) {
+fun AkisTheme(
+    accent: AccentColors = AccentColors(AkisColors.AccentFallback, AkisColors.Bg),
+    content: @Composable () -> Unit,
+) {
     MaterialTheme(colorScheme = AkisColorScheme) {
-        CompositionLocalProvider(LocalAccent provides AccentColors(AkisColors.AccentFallback, AkisColors.Bg)) {
+        CompositionLocalProvider(LocalAccent provides accent) {
             content()
         }
     }

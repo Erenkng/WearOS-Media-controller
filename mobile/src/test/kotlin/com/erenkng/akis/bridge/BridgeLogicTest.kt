@@ -156,3 +156,14 @@ class AckCacheTest {
         assertEquals(7, cache.get("watch", 3)?.volume)
     }
 }
+
+class OutputNamesTest {
+    @Test
+    fun stripsOwnerPrefixes() {
+        assertEquals("Buds3 FE", com.erenkng.akis.bridge.session.OutputNames.shorten("Eren Doğu adlı kişiye ait Buds3 FE"))
+        assertEquals("Galaxy Buds2 Pro", com.erenkng.akis.bridge.session.OutputNames.shorten("Eren's Galaxy Buds2 Pro"))
+        assertEquals("Buds3 FE", com.erenkng.akis.bridge.session.OutputNames.shorten("Eren’in Buds3 FE"))
+        assertEquals("Sony WH-1000XM5", com.erenkng.akis.bridge.session.OutputNames.shorten(" Sony WH-1000XM5 "))
+        assertEquals("JBL Flip 6", com.erenkng.akis.bridge.session.OutputNames.shorten("JBL Flip 6"))
+    }
+}

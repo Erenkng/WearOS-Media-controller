@@ -6,6 +6,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -15,38 +16,54 @@ import androidx.wear.compose.material3.VerticalPageIndicator
 import com.erenkng.akis.wear.R
 import com.erenkng.akis.wear.player.PlayerViewModel
 import com.erenkng.akis.wear.ui.common.toast
+import com.erenkng.akis.wear.ui.focus.FocusScreen
 import com.erenkng.akis.wear.ui.nowplaying.NowPlayingActions
 import com.erenkng.akis.wear.ui.nowplaying.NowPlayingScreen
 import com.erenkng.akis.wear.ui.sources.SourcesScreen
 import kotlinx.coroutines.launch
 
-/** Ana dikey eksen (BRIEF Bölüm 5): aşağı = daha sade, yukarı = daha fazla seçenek. */
+/** Ana dikey eksen (BRIEF Bölüm 5): aşağı = daha sade (Odak), yukarı = daha fazla seçenek (Kaynaklar). */
 enum class MainPage {
-    // Faz 2 kancası: FOCUS (Odak Modu) listenin başına eklenir; başlangıç sayfası kendiliğinden 1 olur.
+    FOCUS,
     NOW_PLAYING,
     SOURCES,
+    ;
+
+    /** Oynatıcı sayfaları kendi düz saatini çizer; sistem `TimeText`'i yalnızca listelerde görünür. */
+    val showsSystemTime: Boolean get() = this == SOURCES
 }
 
 private val Pages = MainPage.entries
 
 /**
  * Wear `VerticalPager`, `rotaryScrollableBehavior = null` ile: döner çerçeve sayfa değiştirmez.
- * Pager her sayfayı `hierarchicalFocusGroup(aktif sayfa)` ile sarar; böylece çerçeve Şimdi Çalıyor'da
- * sese, Kaynaklar'da listeye gider (PLAN 4.4).
+ * Pager her sayfayı `hierarchicalFocusGroup(aktif sayfa)` ile sarar; böylece çerçeve Odak ve Şimdi
+ * Çalıyor'da sese, Kaynaklar'da listeye gider (PLAN 4.4).
  *
  * @param showNowPlayingSignal her değiştiğinde (tile/komplikasyon deep link'i) Şimdi Çalıyor'a döner.
+ * @param onPageChanged sistem saatinin gösterilip gösterilmeyeceği için [com.erenkng.akis.wear.ui.AkisApp]'e bildirir.
  */
 @Composable
-fun MainPager(viewModel: PlayerViewModel, showNowPlayingSignal: Int, onOpenSettings: () -> Unit) {
+fun MainPager(
+    viewModel: PlayerViewModel,
+    showNowPlayingSignal: Int,
+    onOpenSettings: () -> Unit,
+    onPageChanged: (MainPage) -> Unit,
+) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val volume by viewModel.volume.display.collectAsStateWithLifecycle()
     val nowPlayingIndex = Pages.indexOf(MainPage.NOW_PLAYING)
+    val sourcesIndex = Pages.indexOf(MainPage.SOURCES)
     val pagerState = rememberPagerState(initialPage = nowPlayingIndex) { Pages.size }
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
+    val currentOnPageChanged by rememberUpdatedState(onPageChanged)
 
     LaunchedEffect(showNowPlayingSignal) {
         if (showNowPlayingSignal > 0) pagerState.scrollToPage(nowPlayingIndex)
+    }
+    LaunchedEffect(pagerState.currentPage) {
+        currentOnPageChanged(Pages[pagerState.currentPage])
     }
 
     val actions = NowPlayingActions(
@@ -57,7 +74,8 @@ fun MainPager(viewModel: PlayerViewModel, showNowPlayingSignal: Int, onOpenSetti
         onResumeLast = { viewModel.onResumeLast() },
         onRetry = viewModel::onRetry,
         onUnsupported = { context.toast(R.string.toast_unsupported) },
-        onMore = { context.toast(R.string.toast_more_coming) },
+        onLike = viewModel::onLike,
+        onOpenSources = { scope.launch { pagerState.animateScrollToPage(sourcesIndex) } },
     )
 
     Box(Modifier.fillMaxSize()) {
@@ -66,11 +84,21 @@ fun MainPager(viewModel: PlayerViewModel, showNowPlayingSignal: Int, onOpenSetti
             modifier = Modifier.fillMaxSize(),
             rotaryScrollableBehavior = null,
         ) { index ->
+            val isActive = pagerState.currentPage == index
             when (Pages[index]) {
+                MainPage.FOCUS -> FocusScreen(
+                    state = state,
+                    volume = volume,
+                    isActivePage = isActive,
+                    // Faz 2 kancası: "Çift dokunuşu kapat" ayarı (BRIEF 7.6).
+                    doubleTapEnabled = true,
+                    actions = actions,
+                )
+
                 MainPage.NOW_PLAYING -> NowPlayingScreen(
                     state = state,
                     volume = volume,
-                    isActivePage = pagerState.currentPage == index,
+                    isActivePage = isActive,
                     actions = actions,
                 )
 

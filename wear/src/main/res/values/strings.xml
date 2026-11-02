@@ -14,6 +14,10 @@
     <string name="cd_volume_locked">Ses bu uygulamada değiştirilemiyor</string>
     <string name="cd_more">Daha fazla</string>
     <string name="cd_buffering">Yükleniyor</string>
+    <string name="cd_like">Beğen</string>
+    <string name="cd_unlike">Beğenmekten vazgeç</string>
+    <string name="cd_sources">Kaynaklar</string>
+    <string name="cd_focus_mode">Odak modu. Tek dokunuş oynat veya duraklat, çift dokunuş sonraki parça, uzun basış önceki parça.</string>
 
     <string name="live">CANLI</string>
     <string name="volume_value">%1$d/%2$d</string>
@@ -21,7 +25,6 @@
     <!-- Geri bildirim -->
     <string name="toast_unsupported">Bu uygulama desteklemiyor</string>
     <string name="toast_unreachable">Telefona ulaşılamıyor</string>
-    <string name="toast_more_coming">Bu menü sonraki sürümde geliyor</string>
 
     <!-- Boş ve hata durumları -->
     <string name="empty_title">Telefonda şu an bir şey çalmıyor</string>

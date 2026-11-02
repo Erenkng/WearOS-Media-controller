@@ -1,15 +1,18 @@
 package com.erenkng.akis.wear.ui.nowplaying
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -21,9 +24,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.liveRegion
-import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.wear.compose.material3.Icon
@@ -31,11 +34,14 @@ import androidx.wear.compose.material3.Text
 import com.erenkng.akis.wear.R
 import com.erenkng.akis.wear.player.VolumeDisplay
 import com.erenkng.akis.wear.ui.theme.AkisColors
+import com.erenkng.akis.wear.ui.theme.AkisType
 import kotlinx.coroutines.delay
 
 /**
- * Geçici ses göstergesi (BRIEF Bölüm 6 ve 8): yalnızca çevirme sırasında görünür.
- * Sağ kenarda 60°'lik kavisli çubuk + ortada büyük "8/15". 150 ms giriş, 1,5 sn bekleme, 300 ms çıkış.
+ * Geçici ses göstergesi; yalnızca çevirme sırasında görünür (BRIEF Bölüm 6 ve 8).
+ *
+ * Kontrolleri kapatmaz: sağ kenarda 60°'lik bir yay ve saatin yerinde küçük bir hap ("🔊 8/15").
+ * 150 ms giriş, 1,5 sn bekleme, 300 ms çıkış.
  *
  * @param trigger her ses adımında artan sayaç; değiştikçe gösterge (yeniden) açılır.
  */
@@ -56,42 +62,41 @@ fun VolumeOverlay(trigger: Int, display: VolumeDisplay?, accent: Color, modifier
         modifier = modifier.fillMaxSize(),
     ) {
         val value = display ?: return@AnimatedVisibility
-        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+        val description = if (value.isLocked) {
+            stringResource(R.string.cd_volume_locked)
+        } else {
+            stringResource(R.string.cd_volume, value.volume, value.max)
+        }
+        BoxWithConstraints(Modifier.fillMaxSize()) {
             Canvas(Modifier.fillMaxSize()) {
-                // 0° = saat 3 yönü. Çubuk -30°..+30° arasında, alttan yukarı dolar.
-                drawRing(AkisColors.OnSurface.copy(alpha = 0.2f), -ARC_HALF, 2 * ARC_HALF, 6.dp, 2.dp)
+                // 0° = saat 3 yönü. Yay -30°..+30° arasında, alttan yukarı dolar.
+                drawRing(AkisColors.OnSurface.copy(alpha = 0.22f), -ARC_HALF, 2 * ARC_HALF, 6.dp, 3.dp)
                 if (!value.isLocked && value.max > 0) {
                     val fraction = value.volume.toFloat() / value.max
-                    if (fraction > 0f) drawRing(accent, ARC_HALF, -2 * ARC_HALF * fraction, 6.dp, 2.dp)
+                    if (fraction > 0f) drawRing(accent, ARC_HALF, -2 * ARC_HALF * fraction, 6.dp, 3.dp)
                 }
             }
-            val description = if (value.isLocked) {
-                stringResource(R.string.cd_volume_locked)
-            } else {
-                stringResource(R.string.cd_volume, value.volume, value.max)
-            }
-            Box(
+            Row(
                 modifier = Modifier
-                    .size(96.dp)
-                    .background(Color.Black.copy(alpha = 0.72f), CircleShape)
+                    .align(Alignment.TopCenter)
+                    .padding(top = maxHeight * 0.035f)
+                    .background(Color.Black.copy(alpha = 0.78f), RoundedCornerShape(50))
+                    .padding(horizontal = 12.dp, vertical = 5.dp)
                     .semantics {
                         contentDescription = description
                         liveRegion = LiveRegionMode.Polite
                     },
-                contentAlignment = Alignment.Center,
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                verticalAlignment = Alignment.CenterVertically,
             ) {
-                if (value.isLocked) {
-                    Icon(
-                        painter = painterResource(R.drawable.ic_lock),
-                        contentDescription = null,
-                        tint = AkisColors.OnSurface,
-                        modifier = Modifier.size(32.dp),
-                    )
-                } else {
-                    Text(
-                        text = stringResource(R.string.volume_value, value.volume, value.max),
-                        style = com.erenkng.akis.wear.ui.theme.AkisType.volumeNumber,
-                    )
+                Icon(
+                    painter = painterResource(if (value.isLocked) R.drawable.ic_lock else R.drawable.ic_volume_up),
+                    contentDescription = null,
+                    tint = accent,
+                    modifier = Modifier.size(16.dp),
+                )
+                if (!value.isLocked) {
+                    Text(text = stringResource(R.string.volume_value, value.volume, value.max), style = AkisType.volumeValue)
                 }
             }
         }

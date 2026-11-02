@@ -45,8 +45,13 @@ data class PlayerUiState(
     val bridgeName: String? = null,
     val sessions: SessionsPayload = SessionsPayload(),
     val icons: Map<String, Bitmap> = emptyMap(),
+    /** Uygulamanın "beğen" özel eylemi; yoksa alt sıradaki beğen butonu gizlenir. */
+    val likeAction: LikeAction? = null,
 ) {
     val isPaused: Boolean get() = track != null && !isPlaying && !isBuffering
+
+    /** Ses kulaklıkta ya da uzak cihazda: çıkış ikonu vurgu renginde ve altı çizili (referans tasarım). */
+    val isExternalOutput: Boolean get() = outputKind == OutputKind.HEADPHONES || outputKind == OutputKind.REMOTE
 
     companion object {
         fun reduce(
@@ -59,6 +64,7 @@ data class PlayerUiState(
             optimisticPlaying: Boolean?,
             sessions: SessionsPayload,
             icons: Map<String, Bitmap>,
+            optimisticLiked: Boolean? = null,
         ): PlayerUiState {
             val screen = when {
                 connection == ConnectionStatus.BRIDGE_MISSING -> PlayerScreen.Onboarding(
@@ -91,6 +97,8 @@ data class PlayerUiState(
                 bridgeName = bridgeName,
                 sessions = sessions,
                 icons = icons,
+                likeAction = track?.let { LikeActionPolicy.find(it.customActions) }
+                    ?.let { action -> optimisticLiked?.let { action.copy(liked = it) } ?: action },
             )
         }
 

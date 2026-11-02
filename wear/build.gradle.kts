@@ -78,6 +78,8 @@ dependencies {
     implementation(libs.wear.protolayout.material3)
     implementation(libs.wear.protolayout.expression)
     implementation(libs.androidx.concurrent.futures)
+    // Kapaktan vurgu rengi (BRIEF Bölüm 4, dinamik renk).
+    implementation(libs.androidx.palette)
 
     implementation(libs.wear.remote.interactions)
     implementation(libs.play.services.wearable)

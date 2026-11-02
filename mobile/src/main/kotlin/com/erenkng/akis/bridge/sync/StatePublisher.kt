@@ -154,7 +154,8 @@ class StatePublisher(
         val drawable = appInfo.icon(packageName) ?: return
         val request = PutDataMapRequest.create(AkisPaths.icon(packageName))
         request.dataMap.putAsset(AkisDataKeys.ICON, Asset.createFromBytes(artwork.encodeIcon(drawable)))
-        if (put(request.asPutDataRequest())) publishedIcons += packageName
+        // Acil değilse Data Layer ikonu dakikalarca bekletebilir; saat o sürede yedek ikon gösterir.
+        if (put(request.asPutDataRequest().setUrgent())) publishedIcons += packageName
     }
 
     private suspend fun putJson(path: String, bytes: ByteArray, urgent: Boolean): Boolean {

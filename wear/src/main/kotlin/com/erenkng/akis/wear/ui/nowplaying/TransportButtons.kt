@@ -8,19 +8,24 @@ import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.background
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
@@ -35,66 +40,75 @@ import androidx.compose.ui.unit.max
 import androidx.wear.compose.material3.Icon
 import com.erenkng.akis.wear.R
 import com.erenkng.akis.wear.ui.theme.AkisColors
+import kotlin.math.cos
+import kotlin.math.sin
 
-/** Görünen buton küçük olsa bile dokunma alanı en az 48 dp (BRIEF Bölüm 11). */
+/** Görünen ikon küçük olsa bile dokunma alanı en az 48 dp (BRIEF Bölüm 11). */
 private val MinTouchTarget = 48.dp
 
-/** Desteklenmeyen eylem: %30 opaklık (BRIEF Bölüm 6, "Butonlar uygulamaya göre"). */
+/** Desteklenmeyen eylem: %30 opaklık (BRIEF Bölüm 6). */
 private const val DisabledAlpha = 0.3f
 
 /**
- * Daire yan buton: önceki/sonraki (44 dp, `surface` %70), ses/⋯ (36 dp).
+ * Arka plansız, beyaz ikon butonu (referans tasarım): önceki/sonraki ve alt sıradaki butonlar.
  * Etkin değilse yine tıklanabilir; [onDisabledClick] titreşim + "Bu uygulama desteklemiyor" gösterir.
+ *
+ * @param underline doluysa ikonun altında bu renkte kısa bir çizgi (ör. harici çıkışa bağlı).
  */
 @Composable
-fun CircleIconButton(
+fun PlainIconButton(
     @DrawableRes icon: Int,
     contentDescription: String,
-    size: Dp,
-    enabled: Boolean,
+    iconSize: Dp,
     onClick: () -> Unit,
-    onDisabledClick: () -> Unit,
     modifier: Modifier = Modifier,
-    background: Color = AkisColors.Surface.copy(alpha = 0.7f),
-    iconTint: Color = AkisColors.OnSurface,
+    enabled: Boolean = true,
+    tint: Color = AkisColors.OnSurface,
+    underline: Color? = null,
+    onDisabledClick: () -> Unit = {},
 ) {
     Box(
         modifier = modifier
-            .size(max(size, MinTouchTarget))
+            .size(max(iconSize + 12.dp, MinTouchTarget))
             .clip(CircleShape)
             .clickable(role = Role.Button) { if (enabled) onClick() else onDisabledClick() }
             .semantics { this.contentDescription = contentDescription },
         contentAlignment = Alignment.Center,
     ) {
-        Box(
-            modifier = Modifier
-                .size(size)
-                .alpha(if (enabled) 1f else DisabledAlpha)
-                .clip(CircleShape)
-                .background(background),
-            contentAlignment = Alignment.Center,
-        ) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Icon(
                 painter = painterResource(icon),
                 contentDescription = null,
-                tint = iconTint,
-                modifier = Modifier.size(size * 0.55f),
+                tint = tint,
+                modifier = Modifier
+                    .size(iconSize)
+                    .alpha(if (enabled) 1f else DisabledAlpha),
             )
+            if (underline != null) {
+                Spacer(Modifier.height(3.dp))
+                Box(
+                    Modifier
+                        .width(iconSize * 0.9f)
+                        .height(2.5.dp)
+                        .background(underline, RoundedCornerShape(50)),
+                )
+            }
         }
     }
 }
 
 /**
- * Oynat/duraklat, 64 dp, vurgu dolgulu, ikon siyah (BRIEF Bölüm 6).
- * Faz 1: her zaman daire. Faz 2 kancası: çalarken yuvarlatılmış kare (%30), 250 ms spring şekil değişimi.
+ * Oynat/duraklat, çevresinde parça ilerlemesi (referans tasarım): gri iz, vurgu renginde ilerleme ve
+ * mevcut konumda beyaz bir nokta. Canlı yayında ([progress] null) yalnızca iz çizilir.
+ * İlerleme yalnızca çizim aşamasında okunur: her tikte recomposition değil, sadece yeniden çizim olur.
  */
 @Composable
-fun PlayPauseButton(
+fun PlayPauseRing(
     isPlaying: Boolean,
     isBuffering: Boolean,
     enabled: Boolean,
+    progress: (() -> Float)?,
     accent: Color,
-    onAccent: Color,
     size: Dp,
     onClick: () -> Unit,
     onDisabledClick: () -> Unit,
@@ -107,38 +121,67 @@ fun PlayPauseButton(
             else -> R.string.cd_play
         },
     )
-    Box(modifier = modifier, contentAlignment = Alignment.Center) {
-        CircleIconButton(
-            icon = if (isPlaying) R.drawable.ic_pause else R.drawable.ic_play_arrow,
-            contentDescription = description,
-            size = size,
-            enabled = enabled,
-            onClick = onClick,
-            onDisabledClick = onDisabledClick,
-            background = accent,
-            iconTint = onAccent,
+    val spinner = rememberInfiniteTransition(label = "buffering")
+    val spinnerAngle by spinner.animateFloat(
+        initialValue = 0f,
+        targetValue = 360f,
+        animationSpec = infiniteRepeatable(tween(durationMillis = 1100, easing = LinearEasing), RepeatMode.Restart),
+        label = "spinnerAngle",
+    )
+
+    Box(
+        modifier = modifier
+            .size(max(size, MinTouchTarget))
+            .clip(CircleShape)
+            .clickable(role = Role.Button) { if (enabled) onClick() else onDisabledClick() }
+            .semantics { contentDescription = description },
+        contentAlignment = Alignment.Center,
+    ) {
+        Canvas(Modifier.size(size)) {
+            val stroke = RING_STROKE.toPx()
+            // Konum noktası halkanın dışına taşmasın diye halka, nokta yarıçapı kadar içeriden çizilir.
+            val inset = THUMB_RADIUS.toPx()
+            val arcSize = Size(this.size.width - 2 * inset, this.size.height - 2 * inset)
+            val topLeft = Offset(inset, inset)
+            drawArc(
+                color = Color.White.copy(alpha = 0.25f),
+                startAngle = 0f,
+                sweepAngle = 360f,
+                useCenter = false,
+                topLeft = topLeft,
+                size = arcSize,
+                style = Stroke(width = stroke),
+            )
+            if (isBuffering) {
+                drawArc(accent, spinnerAngle, 80f, false, topLeft, arcSize, style = Stroke(stroke, cap = StrokeCap.Round))
+            } else if (progress != null) {
+                val fraction = progress().coerceIn(0f, 1f)
+                if (fraction > 0f) {
+                    drawArc(accent, -90f, 360f * fraction, false, topLeft, arcSize, style = Stroke(stroke, cap = StrokeCap.Round))
+                }
+                val angle = Math.toRadians((-90.0 + 360.0 * fraction))
+                val radius = arcSize.width / 2f
+                drawCircle(
+                    color = Color.White,
+                    radius = THUMB_RADIUS.toPx(),
+                    center = Offset(
+                        x = center.x + (radius * cos(angle)).toFloat(),
+                        y = center.y + (radius * sin(angle)).toFloat(),
+                    ),
+                )
+            }
+        }
+        Icon(
+            painter = painterResource(if (isPlaying) R.drawable.ic_pause else R.drawable.ic_play_arrow),
+            contentDescription = null,
+            tint = Color.White,
+            modifier = Modifier
+                .size(size * 0.46f)
+                .alpha(if (enabled) 1f else DisabledAlpha),
         )
-        if (isBuffering) BufferingSpinner(color = onAccent, modifier = Modifier.size(size).padding(4.dp))
     }
 }
 
-/** Arabelleğe alırken buton içinde dönen ince halka; diğer butonlar etkin kalır. */
-@Composable
-private fun BufferingSpinner(color: Color, modifier: Modifier = Modifier) {
-    val transition = rememberInfiniteTransition(label = "buffering")
-    val rotation by transition.animateFloat(
-        initialValue = 0f,
-        targetValue = 360f,
-        animationSpec = infiniteRepeatable(tween(durationMillis = 1000, easing = LinearEasing), RepeatMode.Restart),
-        label = "rotation",
-    )
-    Canvas(modifier.fillMaxSize()) {
-        drawArc(
-            color = color.copy(alpha = 0.6f),
-            startAngle = rotation,
-            sweepAngle = 90f,
-            useCenter = false,
-            style = Stroke(width = 2.dp.toPx(), cap = StrokeCap.Round),
-        )
-    }
-}
+/** Halka genişliği ve konum noktası (referans tasarımdaki oranlar). */
+private val RING_STROKE = 3.5.dp
+private val THUMB_RADIUS = 4.5.dp

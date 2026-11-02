@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Akış işareti: kor turuncusu üç dalga (akış). 108dp adaptive icon, güvenli alan 66dp. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M34,44 C40,38 46,38 52,44 C58,50 64,50 74,42"
+        android:strokeWidth="6"
+        android:strokeColor="#FFFF8A3D"
+        android:strokeLineCap="round" />
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M34,56 C40,50 46,50 52,56 C58,62 64,62 74,54"
+        android:strokeWidth="6"
+        android:strokeColor="#FFFF8A3D"
+        android:strokeLineCap="round" />
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M34,68 C40,62 46,62 52,68 C58,74 64,74 74,66"
+        android:strokeWidth="6"
+        android:strokeColor="#FFF2F0EB"
+        android:strokeLineCap="round" />
+</vector>

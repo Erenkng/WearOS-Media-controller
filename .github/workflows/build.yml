@@ -1,0 +1,111 @@
+name: Build
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+# Aynı dala art arda push gelirse eski çalıştırma iptal edilir (sürüm yayını yarışmasın).
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      - name: Birim testleri
+        run: ./gradlew test --continue
+
+      - name: Debug APK'ları derle
+        run: ./gradlew assembleDebug --continue
+
+      # Release yalnızca izin denetimi için derlenir (imzasız, yüklenmez).
+      - name: Telefon release APK'sını derle
+        run: ./gradlew :mobile:assembleRelease
+
+      # İki APK da repodaki paylaşılan debug anahtarıyla imzalanmış olmalı (signing/README.md).
+      # Data Layer, saat ve telefon uygulamasının aynı imzayı taşımasını şart koşar.
+      - name: İmzaları doğrula
+        run: |
+          APKSIGNER="$(ls -d "$ANDROID_HOME"/build-tools/*/ | sort -V | tail -1)apksigner"
+          EXPECTED="25936c296b138513396cb6ac5e21bd7af0fb98e7819c7a65097557e41103f092"
+          for apk in mobile/build/outputs/apk/debug/mobile-debug.apk wear/build/outputs/apk/debug/wear-debug.apk; do
+            digest="$("$APKSIGNER" verify --print-certs "$apk" | grep -m1 'SHA-256 digest' | awk '{print $NF}')"
+            echo "$apk -> $digest"
+            test "$digest" = "$EXPECTED"
+          done
+
+      # Saat APK'sı telefon APK'sının içinde olmalı ("Saate yükle" bunu kurar).
+      # INTERNET yalnızca telefon debug sürümünde olmalı; release ve saat çevrimdışı (BRIEF Bölüm 11).
+      - name: Paket içeriğini ve izinleri doğrula
+        run: |
+          AAPT2="$(ls -d "$ANDROID_HOME"/build-tools/*/ | sort -V | tail -1)aapt2"
+          has_internet() { "$AAPT2" dump permissions "$1" | grep -q "android.permission.INTERNET"; }
+          unzip -l mobile/build/outputs/apk/debug/mobile-debug.apk | grep -q "assets/wear/akis-wear.apk"
+          echo "OK: saat APK'sı telefon debug APK'sının içinde"
+          has_internet mobile/build/outputs/apk/debug/mobile-debug.apk
+          echo "OK: telefon debug sürümünde yerel ağ izni var"
+          if has_internet mobile/build/outputs/apk/release/mobile-release-unsigned.apk; then
+            echo "HATA: telefon release sürümünde INTERNET izni olmamalı"; exit 1
+          fi
+          echo "OK: telefon release sürümü çevrimdışı"
+          if has_internet wear/build/outputs/apk/debug/wear-debug.apk; then
+            echo "HATA: saat uygulamasında INTERNET izni olmamalı"; exit 1
+          fi
+          echo "OK: saat uygulaması çevrimdışı"
+
+      # Telefondan tek dokunuşla indirmek için sabit bağlantılı "son debug derlemesi" sürümü:
+      # https://github.com/<repo>/releases/download/akis-debug-latest/akis-kopru-debug.apk
+      # PR çalıştırmalarında yayınlanmaz; yalnızca push ve elle tetiklemede.
+      - name: Son debug APK'larını sürüm olarak yayınla
+        if: github.event_name != 'pull_request'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          mkdir -p dist
+          cp mobile/build/outputs/apk/debug/mobile-debug.apk dist/akis-kopru-debug.apk
+          cp wear/build/outputs/apk/debug/wear-debug.apk dist/akis-saat-debug.apk
+          cat > dist/notes.md <<NOTES
+          Son debug derlemesi: \`${GITHUB_SHA::7}\` (\`${GITHUB_REF_NAME}\` dalı).
+
+          - **akis-kopru-debug.apk**: telefona bunu kur. Saat uygulaması içinde gelir; Akış Köprü → **Saate yükle** ile saate kurulur.
+          - **akis-saat-debug.apk**: saat uygulaması, bilgisayardan ADB ile kurmak istersen.
+
+          Debug derlemesidir ve repodaki paylaşılan debug anahtarıyla imzalıdır (signing/README.md). Play Store sürümü değildir.
+          NOTES
+          TAG=akis-debug-latest
+          gh release delete "$TAG" --yes --cleanup-tag || true
+          gh release create "$TAG" dist/akis-kopru-debug.apk dist/akis-saat-debug.apk \
+            --prerelease \
+            --target "$GITHUB_SHA" \
+            --title "Akış debug: son derleme" \
+            --notes-file dist/notes.md
+
+      - uses: actions/upload-artifact@v4
+        if: success()
+        with:
+          name: akis-debug-apks
+          path: |
+            mobile/build/outputs/apk/debug/*.apk
+            wear/build/outputs/apk/debug/*.apk
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-reports
+          path: '**/build/reports/tests/'
+          if-no-files-found: ignore

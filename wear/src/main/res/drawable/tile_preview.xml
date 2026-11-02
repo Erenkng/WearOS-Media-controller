@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Tile seçicide görünen önizleme: kapak dairesi + üç buton. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="192dp"
+    android:height="192dp"
+    android:viewportWidth="192"
+    android:viewportHeight="192">
+    <path
+        android:fillColor="#FF000000"
+        android:pathData="M96,0a96,96 0,1 1,0 192a96,96 0,1 1,0 -192z" />
+    <path
+        android:fillColor="#FF202024"
+        android:pathData="M96,34a22,22 0,1 1,0 44a22,22 0,1 1,0 -44z" />
+    <path
+        android:fillColor="#FFF2F0EB"
+        android:pathData="M60,90h72v8h-72z" />
+    <path
+        android:fillColor="#FF9C9890"
+        android:pathData="M72,104h48v6h-48z" />
+    <path
+        android:fillColor="#FFFF8A3D"
+        android:pathData="M96,124a16,16 0,1 1,0 32a16,16 0,1 1,0 -32z" />
+    <path
+        android:fillColor="#FF141416"
+        android:pathData="M134,126a14,14 0,1 1,0 28a14,14 0,1 1,0 -28z" />
+    <path
+        android:fillColor="#FF141416"
+        android:pathData="M58,126a14,14 0,1 1,0 28a14,14 0,1 1,0 -28z" />
+</vector>

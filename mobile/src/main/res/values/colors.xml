@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- BRIEF Bölüm 4, renk token'ları -->
+    <color name="akis_bg">#FF000000</color>
+    <color name="akis_accent">#FFFF8A3D</color>
+</resources>

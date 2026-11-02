@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <!--
+        İnternet izni burada yok. Release: src/release/AndroidManifest.xml izni açıkça kaldırır (BRIEF Bölüm 11).
+        Debug: src/debug/AndroidManifest.xml saate kablosuz kurulum için yalnızca yerel ağ bağlantısına izin verir.
+    -->
+
+    <!--
+        Android 11+ paket görünürlüğü: medya uygulamalarının adını/ikonunu okumak ve
+        "Son kullanılanlar" için MEDIA_BUTTON göndermek gerekir. QUERY_ALL_PACKAGES yerine dar sorgular.
+    -->
+    <queries>
+        <intent>
+            <action android:name="android.intent.action.MEDIA_BUTTON" />
+        </intent>
+        <intent>
+            <action android:name="android.media.browse.MediaBrowserService" />
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.MAIN" />
+            <category android:name="android.intent.category.LAUNCHER" />
+        </intent>
+    </queries>
+
+    <application
+        android:name=".AkisBridgeApp"
+        android:allowBackup="false"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.AkisBridge">
+
+        <activity
+            android:name=".ui.SetupActivity"
+            android:exported="true"
+            android:launchMode="singleTop">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+            <!-- Saatteki onboarding'in 3. adımı bu ekranı RemoteActivityHelper ile açar. -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data
+                    android:host="setup"
+                    android:scheme="akis" />
+            </intent-filter>
+        </activity>
+
+        <!-- Diğer uygulamaların medya oturumlarını görmenin üçüncü taraf için tek yolu (BRIEF Bölüm 10). -->
+        <service
+            android:name=".listener.AkisNotificationListener"
+            android:exported="true"
+            android:label="@string/listener_label"
+            android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE">
+            <intent-filter>
+                <action android:name="android.service.notification.NotificationListenerService" />
+            </intent-filter>
+        </service>
+
+        <service
+            android:name=".wear.BridgeListenerService"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="com.google.android.gms.wearable.MESSAGE_RECEIVED" />
+                <data
+                    android:host="*"
+                    android:pathPrefix="/akis"
+                    android:scheme="wear" />
+            </intent-filter>
+        </service>
+    </application>
+</manifest>

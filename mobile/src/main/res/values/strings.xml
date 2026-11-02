@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Akış Köprü</string>
+    <string name="listener_label">Akış Köprü medya erişimi</string>
+
+    <!-- Kurulum ekranı -->
+    <string name="setup_title">Akış Köprü</string>
+    <string name="setup_subtitle">Telefonunda çalan müziği saatindeki Akış uygulamasına bağlar.</string>
+
+    <string name="setup_permission_title">Bildirim erişimi</string>
+    <string name="setup_permission_granted">İzin verildi. Medya oturumları okunuyor.</string>
+    <string name="setup_permission_missing">Saatten kontrol için bu izin gerekli.</string>
+    <string name="setup_permission_button">Bildirim erişimine izin ver</string>
+    <string name="setup_privacy">Sadece medya oturumlarını okumak için; bildirim içeriklerin okunmaz ve saklanmaz.</string>
+
+    <string name="setup_restricted_title">İzin anahtarı gri mi görünüyor?</string>
+    <string name="setup_restricted_body">Play Store dışından kurulan uygulamalarda Android bu izni kilitleyebilir. Uygulama bilgisi ekranında sağ üstteki ⋮ menüsünden \"Kısıtlı ayarlara izin ver\" seçeneğini aç, sonra buraya dön.</string>
+    <string name="setup_restricted_button">Uygulama bilgisini aç</string>
+
+    <string name="setup_watch_title">Saat</string>
+    <string name="setup_watch_connected">Bağlı: %1$s</string>
+    <string name="setup_watch_none">Bağlı saat bulunamadı. Saatin Bluetooth ile bağlı olduğundan emin ol.</string>
+    <string name="setup_watch_app_installed">Akış saatte kurulu.</string>
+    <string name="setup_watch_app_missing">Akış saatte henüz kurulu değil.</string>
+    <string name="setup_watch_app_install">Saate yükle</string>
+    <string name="setup_watch_app_update">Saatteki Akış\'ı güncelle</string>
+    <string name="setup_version">Sürüm %1$s</string>
+
+    <!-- Çıkış etiketleri (NowPlayingState.outputLabel) -->
+    <string name="output_phone_speaker">Telefon hoparlörü</string>
+    <string name="output_wired">Kablolu kulaklık</string>
+    <string name="output_bluetooth_suffix">%1$s · Bluetooth</string>
+    <string name="output_bluetooth_generic">Bluetooth</string>
+    <string name="output_remote">Uzak cihaz</string>
+</resources>
